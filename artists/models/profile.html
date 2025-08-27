@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Artist Profile</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2rem;
+      background-color: #f4f4f4;
+    }
+    .profile {
+      background: #fff;
+      padding: 2rem;
+      border-radius: 10px;
+      max-width: 700px;
+      margin: auto;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .profile h2 {
+      margin-top: 0;
+    }
+    .section {
+      margin-bottom: 1rem;
+    }
+    .section strong {
+      display: inline-block;
+      width: 160px;
+    }
+    .services span {
+      display: inline-block;
+      background: #e0f0ff;
+      margin: 2px;
+      padding: 5px 10px;
+      border-radius: 5px;
+    }
+    .link a {
+      color: #007bff;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="profile">
+    <h2>Artist Profile</h2>
+    <div id="profile-content">Loading...</div>
+  </div>
+
+  <script>
+    fetch("http://localhost:8000/api/artists/my-profile/", {
+      method: "GET",
+      headers: {
+        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUwOTY1NDg3LCJpYXQiOjE3NTA5NjE4ODcsImp0aSI6Ijk4NDM3OGZmMWU0NTRmMmFiNjJmMTlmYjVlYTAyYWNkIiwidXNlcl9pZCI6NH0.dbNShe_XjkGm1HFL8nL2tx5s0tOpJFMrD8jlVDKDcog",
+        "Content-Type": "application/json"
+      }
+    })
+    .then(response => {
+      if (!response.ok) throw new Error("Failed to fetch profile");
+      return response.json();
+    })
+    .then(data => {
+      const profileDiv = document.getElementById("profile-content");
+
+      const services = (data.services || []).map(s => `<span>${s}</span>`).join(" ");
+const docs = (data.id_documents_data || []).map(doc => {
+  const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(doc.file_url);
+  return `<li>
+    ${isImage 
+      ? `<img src="${doc.file_url}" alt="${doc.file_type} (${doc.tag})" style="max-width: 200px; border: 1px solid #ccc; margin-bottom: 10px;">`
+      : `<a href="${doc.file_url}" target="_blank">${doc.file_name} (${doc.file_type} - ${doc.tag})</a>`
+    }
+  </li>`;
+}).join("");
+
+
+      profileDiv.innerHTML = `
+        <div class="section"><strong>Name:</strong> ${data.first_name} ${data.last_name}</div>
+        <div class="section"><strong>Phone:</strong> ${data.phone}</div>
+        <div class="section"><strong>Email:</strong> ${data.email}</div>
+        <div class="section"><strong>DOB:</strong> ${data.date_of_birth}</div>
+        <div class="section"><strong>Gender:</strong> ${data.gender}</div>
+        <div class="section"><strong>Makeup Type:</strong> ${data.type_of_makeup}</div>
+        <div class="section"><strong>Price Range:</strong> ${data.price_range}</div>
+        <div class="section"><strong>Experience:</strong> ${data.experience_years} years</div>
+        <div class="section"><strong>Products Used:</strong> ${data.products_used}</div>
+        <div class="section services"><strong>Services:</strong> ${services}</div>
+        <div class="section"><strong>Trial Available:</strong> ${data.trial_available ? 'Yes' : 'No'}</div>
+        <div class="section"><strong>Travel Charges:</strong> ${data.travel_charges ? 'Yes' : 'No'}</div>
+        <div class="section"><strong>Bio:</strong> ${data.bio}</div>
+        <div class="section link"><strong>Instagram:</strong> <a href="${data.social_links?.instagram || '#'}" target="_blank">Visit</a></div>
+        <div class="section link"><strong>Facebook:</strong> <a href="${data.social_links?.facebook || '#'}" target="_blank">Visit</a></div>
+        <div class="section"><strong>ID Documents:</strong><ul>${docs || '<li>None</li>'}</ul></div>
+      `;
+    })
+    .catch(error => {
+      document.getElementById("profile-content").innerHTML = "Error loading profile.";
+      console.error(error);
+    });
+  </script>
+</body>
+</html>

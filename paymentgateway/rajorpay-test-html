@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Razorpay Payment</title>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+  <h2>Razorpay Payment Test</h2>
+  <button onclick="initiatePayment()">Buy Subscription</button>
+
+  <script>
+    async function initiatePayment() {
+      const planId = 1; // Change to your test plan ID
+      const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUyMDg1MDA2LCJpYXQiOjE3NTE5MTIwNzgsImp0aSI6ImIwNjQ5MjkwMWE0MDRlOWU5ZWIzMWMyMTNlNDQyODI0IiwidXNlcl9pZCI6NH0.NYQM0WtHOkjMGxj6MXyLcLyDmRFSzEni9ezi2hVn34U"; // Replace with actual bearer token
+
+      const response = await fetch(`http://localhost:8000/api/plans/${planId}/purchase/`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      });
+
+      const data = await response.json();
+
+      if (!data.razorpay_order_id) {
+        alert("Order creation failed: " + JSON.stringify(data));
+        return;
+      }
+
+      const options = {
+        key: data.key,
+        amount: data.amount,
+        currency: data.currency,
+        name: data.plan,
+        description: "Wedmac Subscription Purchase",
+        order_id: data.razorpay_order_id,
+        handler: function (response) {
+          alert("Payment successful!\n" + JSON.stringify(response));
+          // Call your verification API here if needed
+        },
+        prefill: {
+          name: data.artist
+        },
+        theme: {
+          color: "#3399cc"
+        }
+      };
+
+      const rzp = new Razorpay(options);
+      rzp.open();
+    }
+  </script>
+</body>
+</html>

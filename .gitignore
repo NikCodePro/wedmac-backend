@@ -1,0 +1,7 @@
+# Ignore environment files
+.env
+db.txt
+# Ignore Python bytecode and cache directories
+*.pyc
+__pycache__/
+db.json

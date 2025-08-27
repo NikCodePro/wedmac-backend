@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Blogs App API Documentation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f7f4;
+            color: #333;
+        }
+        .api-card {
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .api-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .method-post { background-color: #4ade80; }
+        .method-put { background-color: #facc15; }
+        .method-delete { background-color: #f87171; }
+        .method-get { background-color: #60a5fa; }
+        .code-block {
+            background-color: #1e293b;
+            color: #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.875rem;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        .nav-link {
+            transition: all 0.2s ease;
+        }
+        .nav-link.active {
+            color: #4f46e5;
+            border-bottom: 2px solid #4f46e5;
+        }
+    </style>
+    <!-- Chosen Palette: Warm Neutrals with Subtle Accents -->
+    <!-- Application Structure Plan: A single-page dashboard with a left-hand navigation menu to jump to different API endpoint sections. Each section is a self-contained "card" that presents the endpoint's details, an interactive form to simulate requests, and a display area for simulated responses. This structure was chosen for its clarity and ease of use, allowing developers to quickly find and test the specific endpoint they need without scrolling through a long, linear document. The interactive nature makes understanding the API's functionality more intuitive. -->
+    <!-- Visualization & Content Choices: Report Info (API Endpoints) -> Goal (Inform, Allow Interaction) -> Viz/Presentation (Structured HTML cards with forms and code blocks) -> Interaction (Users can fill forms and click "Send Request" to see a simulated JSON response) -> Justification (This provides a hands-on learning experience, making the documentation more engaging and practical than static text) -> Library/Method (Vanilla JS for interaction, Tailwind CSS for styling). -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="antialiased">
+
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-800">Blogs App API</h1>
+            <p class="text-lg text-gray-600 mt-2">Interactive Documentation</p>
+            <div class="mt-6 flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4">
+                <label for="auth-token-input" class="text-gray-700 font-semibold">JWT Bearer Token:</label>
+                <input type="text" id="auth-token-input" class="flex-grow p-2 border rounded-md w-full md:w-auto focus:ring-2 focus:ring-indigo-400" placeholder="Paste your token here">
+            </div>
+        </header>
+
+        <div class="flex flex-col md:flex-row gap-8">
+            <aside class="md:w-1/4">
+                <nav class="sticky top-8 bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="text-lg font-semibold mb-4 text-gray-700">Endpoints</h3>
+                    <ul class="space-y-3">
+                        <li><a href="#create" class="nav-link block font-medium text-gray-600 hover:text-indigo-600">Create Blog</a></li>
+                        <li><a href="#edit" class="nav-link block font-medium text-gray-600 hover:text-indigo-600">Edit Blog</a></li>
+                        <li><a href="#delete" class="nav-link block font-medium text-gray-600 hover:text-indigo-600">Delete Blog</a></li>
+                        <li><a href="#get-all" class="nav-link block font-medium text-gray-600 hover:text-indigo-600">Get All Blogs</a></li>
+                        <li><a href="#get-by-id" class="nav-link block font-medium text-gray-600 hover:text-indigo-600">Get Blog by ID</a></li>
+                    </ul>
+                </nav>
+            </aside>
+
+            <main class="md:w-3/4 space-y-12">
+                
+                <section id="create" class="api-card bg-white rounded-xl overflow-hidden">
+                    <div class="p-6">
+                        <div class="flex items-center mb-4">
+                            <span class="method-post text-white text-xs font-bold px-3 py-1 rounded-full mr-3">POST</span>
+                            <h2 class="text-2xl font-bold text-gray-800">Create a Blog Post</h2>
+                        </div>
+                        <p class="text-gray-600 mb-4">This endpoint allows an authenticated superadmin to create a new blog post. The author's name is automatically assigned based on the logged-in user.</p>
+                        <p class="font-mono text-sm bg-gray-100 p-2 rounded-md text-gray-700">/api/create/</p>
+                        
+                        <div class="mt-6">
+                            <h4 class="font-semibold text-gray-700 mb-2">Request Body</h4>
+                            <form id="create-form" enctype="multipart/form-data">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <input type="text" id="create-project-id" name="project_id" placeholder="Project ID (e.g., 12345)" class="p-2 border rounded-md focus:ring-2 focus:ring-indigo-400">
+                                    <input type="text" id="create-title" name="title" placeholder="Title (e.g., My First Blog)" class="p-2 border rounded-md focus:ring-2 focus:ring-indigo-400">
+                                    <textarea id="create-content" name="content" placeholder="Content..." class="md:col-span-2 p-2 border rounded-md focus:ring-2 focus:ring-indigo-400" rows="3"></textarea>
+                                    <input type="text" id="create-hashtags" name="hashtags" placeholder="Hashtags (e.g., django, python)" class="p-2 border rounded-md focus:ring-2 focus:ring-indigo-400">
+                                    <input type="text" id="create-category" name="category" placeholder="Category (e.g., Technology)" class="p-2 border rounded-md focus:ring-2 focus:ring-indigo-400">
+                                    <div class="md:col-span-2">
+                                        <label for="create-images" class="block text-gray-700 text-sm font-semibold mb-2">Photos (Max 3):</label>
+                                        <input type="file" id="create-images" name="images" multiple accept="image/*" class="w-full text-gray-700 border rounded-md px-3 py-2">
+                                    </div>
+                                </div>
+                                <button type="button" onclick="handleRequest('create')" class="mt-4 w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-700 transition">Send Request</button>
+                            </form>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <h4 class="font-semibold text-gray-700 mb-2">Response</h4>
+                            <pre class="code-block" id="response-create">Click "Send Request" to see a response.</pre>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="edit" class="api-card bg-white rounded-xl overflow-hidden">
+                    <div class="p-6">
+                        <div class="flex items-center mb-4">
+                            <span class="method-put text-gray-800 text-xs font-bold px-3 py-1 rounded-full mr-3">PUT</span>
+                            <h2 class="text-2xl font-bold text-gray-800">Edit a Blog Post</h2>
+                        </div>
+                        <p class="text-gray-600 mb-4">Update an existing blog post using its `project_id`. This action is restricted to superadmins.</p>
+                        <p class="font-mono text-sm bg-gray-100 p-2 rounded-md text-gray-700">/api/edit/&lt;int:project_id&gt;/</p>
+
+                        <div class="mt-6">
+                            <h4 class="font-semibold text-gray-700 mb-2">Parameters & Request Body</h4>
+                            <form id="edit-form" enctype="multipart/form-data">
+                                <input type="text" id="edit-project-id" name="project_id" placeholder="Project ID to Edit (e.g., 12345)" class="p-2 border rounded-md w-full mb-4 focus:ring-2 focus:ring-indigo-400">
+                                <input type="text" id="edit-title" name="title" placeholder="New Title (optional)" class="p-2 border rounded-md w-full mb-4 focus:ring-2 focus:ring-indigo-400">
+                                <textarea id="edit-content" name="content" placeholder="New Content (optional)" class="w-full p-2 border rounded-md font-mono text-sm focus:ring-2 focus:ring-indigo-400" rows="3"></textarea>
+                                <div class="md:col-span-2">
+                                    <label for="edit-images" class="block text-gray-700 text-sm font-semibold mt-2 mb-2">Add more Photos (Max 3 total):</label>
+                                    <input type="file" id="edit-images" name="images" multiple accept="image/*" class="w-full text-gray-700 border rounded-md px-3 py-2">
+                                </div>
+                                <button type="button" onclick="handleRequest('edit')" class="mt-4 w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-700 transition">Send Request</button>
+                            </form>
+                        </div>
+
+                        <div class="mt-6">
+                            <h4 class="font-semibold text-gray-700 mb-2">Response</h4>
+                            <pre class="code-block" id="response-edit">...</pre>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="delete" class="api-card bg-white rounded-xl overflow-hidden">
+                    <div class="p-6">
+                        <div class="flex items-center mb-4">
+                            <span class="method-delete text-white text-xs font-bold px-3 py-1 rounded-full mr-3">DELETE</span>
+                            <h2 class="text-2xl font-bold text-gray-800">Delete a Blog Post</h2>
+                        </div>
+                        <p class="text-gray-600 mb-4">Permanently remove a blog post using its `project_id`. Requires superadmin privileges.</p>
+                        <p class="font-mono text-sm bg-gray-100 p-2 rounded-md text-gray-700">/api/delete/&lt;int:project_id&gt;/</p>
+
+                        <div class="mt-6">
+                            <h4 class="font-semibold text-gray-700 mb-2">Parameters</h4>
+                            <input type="text" id="delete-project-id" placeholder="Project ID to Delete (e.g., 12345)" class="p-2 border rounded-md w-full focus:ring-2 focus:ring-indigo-400">
+                            <button type="button" onclick="handleRequest('delete')" class="mt-4 w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-700 transition">Send Request</button>
+                        </div>
+
+                        <div class="mt-6">
+                            <h4 class="font-semibold text-gray-700 mb-2">Response</h4>
+                            <pre class="code-block" id="response-delete">...</pre>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="get-all" class="api-card bg-white rounded-xl overflow-hidden">
+                    <div class="p-6">
+                        <div class="flex items-center mb-4">
+                            <span class="method-get text-white text-xs font-bold px-3 py-1 rounded-full mr-3">GET</span>
+                            <h2 class="text-2xl font-bold text-gray-800">Get All Blogs</h2>
+                        </div>
+                        <p class="text-gray-600 mb-4">Retrieve a list of all blog posts. This is a public endpoint and can be optionally filtered by category.</p>
+                        <p class="font-mono text-sm bg-gray-100 p-2 rounded-md text-gray-700">/api/get/</p>
+
+                        <div class="mt-6">
+                            <h4 class="font-semibold text-gray-700 mb-2">Query Parameters (Optional)</h4>
+                            <input type="text" id="get-all-category" placeholder="Category to filter by (e.g., Technology)" class="p-2 border rounded-md w-full focus:ring-2 focus:ring-indigo-400">
+                            <button type="button" onclick="handleRequest('getAll')" class="mt-4 w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-700 transition">Send Request</button>
+                        </div>
+
+                        <div class="mt-6">
+                            <h4 class="font-semibold text-gray-700 mb-2">Response</h4>
+                            <pre class="code-block" id="response-getAll">...</pre>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="get-by-id" class="api-card bg-white rounded-xl overflow-hidden">
+                    <div class="p-6">
+                        <div class="flex items-center mb-4">
+                            <span class="method-get text-white text-xs font-bold px-3 py-1 rounded-full mr-3">GET</span>
+                            <h2 class="text-2xl font-bold text-gray-800">Get Blog by ID</h2>
+                        </div>
+                        <p class="text-gray-600 mb-4">Fetch a single blog post by its primary key (ID). This is a public endpoint.</p>
+                        <p class="font-mono text-sm bg-gray-100 p-2 rounded-md text-gray-700">/api/get/&lt;int:project_id&gt;/</p>
+
+                        <div class="mt-6">
+                            <h4 class="font-semibold text-gray-700 mb-2">Parameters</h4>
+                            <input type="text" id="get-by-id-pk" placeholder="Project ID to fetch (e.g., 12345)" class="p-2 border rounded-md w-full focus:ring-2 focus:ring-indigo-400">
+                            <button type="button" onclick="handleRequest('getById')" class="mt-4 w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-md hover:bg-indigo-700 transition">Send Request</button>
+                        </div>
+
+                        <div class="mt-6">
+                            <h4 class="font-semibold text-gray-700 mb-2">Response</h4>
+                            <pre class="code-block" id="response-getById">...</pre>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://127.0.0.1:8000/api/blogs';
+
+        async function handleRequest(endpoint) {
+            const responseContainer = document.getElementById(`response-${endpoint}`);
+            responseContainer.textContent = 'Loading...';
+
+            const authToken = document.getElementById('auth-token-input').value;
+            const headers = {};
+            if (authToken) {
+                headers['Authorization'] = `Bearer ${authToken}`;
+            }
+
+            try {
+                let url;
+                let options = { headers: headers };
+                let response;
+
+                switch (endpoint) {
+                    case 'create':
+                        const createForm = document.getElementById('create-form');
+                        const createData = new FormData(createForm);
+                        url = `${BASE_URL}/create/`;
+                        options = {
+                            method: 'POST',
+                            body: createData,
+                            headers: {
+                                'Authorization': `Bearer ${authToken}`
+                            }
+                        };
+                        break;
+                    
+                    case 'edit':
+                        const editForm = document.getElementById('edit-form');
+                        const editProjectId = document.getElementById('edit-project-id').value;
+                        if (!editProjectId) {
+                            responseContainer.textContent = 'Error: Project ID is required for editing.';
+                            return;
+                        }
+                        const editData = new FormData();
+                        
+                        const editTitle = document.getElementById('edit-title').value;
+                        if (editTitle) editData.append('title', editTitle);
+                        const editContent = document.getElementById('edit-content').value;
+                        if (editContent) editData.append('content', editContent);
+                        
+                        const editImages = document.getElementById('edit-images').files;
+                        for (let i = 0; i < editImages.length; i++) {
+                            editData.append('images', editImages[i]);
+                        }
+                        
+                        url = `${BASE_URL}/edit/${editProjectId}/`;
+                        options = {
+                            method: 'PUT',
+                            body: editData,
+                            headers: {
+                                'Authorization': `Bearer ${authToken}`
+                            }
+                        };
+                        break;
+                        
+                    case 'delete':
+                        const deleteProjectId = document.getElementById('delete-project-id').value;
+                        if (!deleteProjectId) {
+                            responseContainer.textContent = 'Error: Project ID is required for deletion.';
+                            return;
+                        }
+                        url = `${BASE_URL}/delete/${deleteProjectId}/`;
+                        options = {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': `Bearer ${authToken}`
+                            }
+                        };
+                        break;
+                    
+                    case 'getAll':
+                        const category = document.getElementById('get-all-category').value;
+                        url = `${BASE_URL}/get/` + (category ? `?category=${category}` : '');
+                        options = { method: 'GET' };
+                        break;
+
+                    case 'getById':
+                        const getByIdProjectId = document.getElementById('get-by-id-pk').value;
+                        if (!getByIdProjectId) {
+                            responseContainer.textContent = 'Error: Project ID is required.';
+                            return;
+                        }
+                        url = `${BASE_URL}/get/${getByIdProjectId}/`;
+                        options = { method: 'GET' };
+                        break;
+
+                    default:
+                        responseContainer.textContent = 'Error: Unknown endpoint.';
+                        return;
+                }
+
+                response = await fetch(url, options);
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`HTTP Error: ${response.status} - ${JSON.stringify(errorData, null, 2)}`);
+                }
+
+                const data = await response.json();
+                responseContainer.textContent = JSON.stringify(data, null, 2);
+
+            } catch (error) {
+                console.error('Fetch error:', error);
+                responseContainer.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const sections = document.querySelectorAll('main section');
+            const navLinks = document.querySelectorAll('.nav-link');
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        navLinks.forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('href').substring(1) === entry.target.id) {
+                                link.classList.add('active');
+                            }
+                        });
+                    }
+                });
+            }, { rootMargin: "-50% 0px -50% 0px" });
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    document.querySelector(link.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>
