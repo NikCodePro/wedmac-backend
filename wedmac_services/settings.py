@@ -76,11 +76,11 @@ REST_FRAMEWORK = {
     )
 }
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000","https://wedmac-be.onrender.com",
+    "http://localhost:3000","https://wedmac-be.onrender.com", "https://wedmacindia.com",
 ]
 CORS_ALLOW_ALL_ORIGINS = True
 CSRF_TRUSTED_ORIGINS = [
-    "https://wedmac-services.onrender.com","https://wedmac-be.onrender.com",
+    "https://wedmac-services.onrender.com","https://wedmac-be.onrender.com","https://wedmacindia.com",
     # Add other domains if needed
 ]
 MIDDLEWARE = [
