@@ -31,7 +31,7 @@ import os
 DEBUG = True
 # DEBUG = os.getenv("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = ["wedmac-services.onrender.com", "localhost", "127.0.0.1","wedmac-be.onrender.com","wedmac-be.vercel.app"]
+ALLOWED_HOSTS = ["89.116.33.217 ", "localhost", "127.0.0.1","wedmac-be.onrender.com","api.wedmacindia.com"]
 
 
 # Application definition
