@@ -9,6 +9,7 @@ from artists.view.get_artist_profile import GetArtistProfileView
 from artists.view.payment_history_view import ArtistPaymentHistoryView
 from artists.view.subscriptions_view import  PurchaseSubscriptionView, VerifyPaymentView
 from artists.view.website.artist_card_view import ArtistCardListView
+from artists.view.payment_history_view import AdminArtistPaymentHistoryView
 from artists.view.website.artist_detail_view import ArtistPublicDetailView
 from artists.view.refferal_code_view import generate_referral_code, get_referral_code
 from artists.view.artist_service_view import ArtistServiceManageView
@@ -24,6 +25,8 @@ urlpatterns = [
     path('payment/verify/', VerifyPaymentView.as_view(), name='verify-payment'),
 
     path('payments/history/', ArtistPaymentHistoryView.as_view(), name='artist-payment-history'),
+     # Admin: all artists payment history with filters
+    path('admin/payments/history/', AdminArtistPaymentHistoryView.as_view(), name='admin-artist-payment-history'),
     # website urls 
     path('cards/', ArtistCardListView.as_view(), name='artist-cards'),
     path('artist/<int:id>/', ArtistPublicDetailView.as_view(), name='public-artist-detail'),
