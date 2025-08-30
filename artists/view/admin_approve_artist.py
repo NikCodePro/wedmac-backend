@@ -193,3 +193,31 @@ class AdminDeleteArtistView(APIView):
                 {"error": f"Failed to delete artist: {str(e)}"}, 
                 status=http_status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+class AdminSetArtistActiveView(APIView):
+    permission_classes = [IsSuperAdmin]
+
+    def post(self, request, artist_id):
+        try:
+            artist = ArtistProfile.objects.get(id=artist_id)
+            artist.is_active = True
+            artist.save()
+            return Response({"message": "Artist set to active", "artist_id": artist.id}, status=status.HTTP_200_OK)
+        except ArtistProfile.DoesNotExist:
+            return Response({"error": "Artist not found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class AdminSetArtistInactiveView(APIView):
+    permission_classes = [IsSuperAdmin]
+
+    def post(self, request, artist_id):
+        try:
+            artist = ArtistProfile.objects.get(id=artist_id)
+            artist.is_active = False
+            artist.save()
+            return Response({"message": "Artist set to inactive", "artist_id": artist.id}, status=status.HTTP_200_OK)
+        except ArtistProfile.DoesNotExist:
+            return Response({"error": "Artist not found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

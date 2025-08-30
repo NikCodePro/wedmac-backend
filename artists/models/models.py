@@ -79,6 +79,9 @@ class ArtistProfile(models.Model):
     # new: available leads for the artist
     available_leads = models.IntegerField(default=0)
 
+    # new: active/inactive flag for admin control
+    is_active = models.BooleanField(default=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

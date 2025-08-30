@@ -173,6 +173,7 @@ class AdminArtistProfileSerializer(serializers.ModelSerializer):
             "profile_picture",
             "certifications",
             "id_documents",
+            "is_active",
         ]
 
     def get_profile_picture(self, obj):
