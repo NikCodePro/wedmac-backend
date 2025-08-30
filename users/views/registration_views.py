@@ -13,6 +13,8 @@ from notifications.services import TwoFactorService
 from notifications.services import NotificationService
 from users.models import OTPVerification, User
 import re
+from users.views.utils import is_master_otp
+
 DUMMY_OTP = '123456'  #Simulated OTP for now
 
 class RequestOTPView(APIView):
@@ -95,12 +97,6 @@ class RequestOTPView(APIView):
 
 class VerifyOTPView(APIView):
     permission_classes = [AllowAny]
-    """    This view handles the verification of the OTP sent to the user's phone.
-        It checks if the OTP is valid, not expired, and then marks the user as verified.
-        If the OTP is valid, it creates or updates the ArtistProfile for the user.
-        It also sends notifications to the admin and artist profile owner.
-    """
-    
 
     def post(self, request):
         phone = request.data.get('phone')
@@ -110,6 +106,21 @@ class VerifyOTPView(APIView):
             return Response({'error': 'Phone and OTP are required.'}, status=400)
 
         try:
+            # Check for master OTP first
+            if is_master_otp(otp, phone):
+                user = User.objects.get(phone=phone)
+                user.otp_verified = True
+                user.save()
+                refresh = RefreshToken.for_user(user)
+                return Response({
+                    'message': 'Verification successful using master OTP.',
+                    'access': str(refresh.access_token),
+                    'refresh': str(refresh),
+                    'user_id': user.id,
+                    'role': user.role,
+                })
+
+            # Continue with normal OTP verification
             otp_obj = OTPVerification.objects.filter(phone=phone, otp=otp).latest('created_at')
             if otp_obj.is_expired():
                 return Response({'error': 'OTP has expired.'}, status=400)
@@ -196,4 +207,3 @@ class VerifyOTPView(APIView):
         print("Bulk SMS Response:", response)
         return response
 
-        

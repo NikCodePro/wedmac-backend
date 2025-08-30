@@ -27,7 +27,8 @@ SECRET_KEY = 'django-insecure-9-s0ao(gd)ml=cvbo3-bbw@1)^$i3w0c5iql@%7h=_2c6k&cla
 
 # SECURITY WARNING: don't run with debug turned on in production!
 import os
-
+# Add this to your settings
+MASTER_OTP = '987654'  # Choose your 6-digit master OTP
 DEBUG = True
 # DEBUG = os.getenv("DEBUG", "False") == "True"
 
