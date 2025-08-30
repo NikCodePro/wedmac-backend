@@ -4,8 +4,10 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from superadmin_auth.permissions import IsSuperAdmin
-from .models import Blog, Photo
+from notifications.services import TwoFactorService
+from .models import Blog, Photo, Comment
 from django.db import transaction
+import random
 
 
 @api_view(['POST'])
@@ -113,6 +115,15 @@ def get_blog_by_id(request, project_id):
     """
     blog = get_object_or_404(Blog, project_id=project_id)
     photos = [photo.image.url for photo in blog.photos.all()] # Fetch photo URLs
+    comments = [
+        {
+            "name": comment.name,
+            "phone_number": comment.phone_number,
+            "location": comment.location,
+            "comment": comment.comment,
+            "created_at": comment.created_at.strftime("%Y-%m-%d %H:%M:%S")
+        } for comment in blog.comments.all()
+    ]
     
     data = {
         "id": blog.id,
@@ -123,6 +134,79 @@ def get_blog_by_id(request, project_id):
         "hashtags": blog.hashtags,
         "author_name": blog.author_name,
         "category": blog.category,
-        "photos": photos
+        "photos": photos,
+        "comments": comments
     }
     return Response(data, status=200)
+
+
+# New API View to send OTP for comment
+@api_view(['POST'])
+def send_otp_for_comment(request):
+    phone_number = request.data.get('phone_number')
+    if not phone_number:
+        return Response({"error": "Phone number is required."}, status=400)
+    
+    # Generate a 6-digit OTP
+    otp = str(random.randint(100000, 999999))
+    
+    # Initialize TwoFactorService and send OTP
+    response = TwoFactorService(phone=phone_number, otp=otp).send_otp()
+
+    if response.get("Status") == "Success":
+        return Response({"message": "OTP sent successfully."}, status=200)
+    else:
+        return Response({"error": response.get("Details", "Failed to send OTP.")}, status=400)
+
+# New API View to verify OTP and add comment
+@api_view(['POST'])
+def add_comment(request, project_id):
+    try:
+        blog = get_object_or_404(Blog, project_id=project_id)
+        
+        data = request.data
+        phone_number = data.get('phone_number')
+        otp = data.get('otp')
+        name = data.get('name')
+        location = data.get('location')
+        comment_content = data.get('comment')
+        
+        if not all([phone_number, name, comment_content]):
+            return Response({"error": "Missing required fields."}, status=400)
+
+        # Check if the user has already commented with this phone number
+        user_verified = Comment.objects.filter(phone_number=phone_number).exists()
+
+        if user_verified:
+            # If the user has commented before, skip OTP verification
+            Comment.objects.create(
+                blog=blog,
+                name=name,
+                phone_number=phone_number,
+                location=location,
+                comment=comment_content
+            )
+            return Response({"message": "Comment added successfully (previous user)."}, status=201)
+        else:
+            # If it's a new user, proceed with OTP verification
+            if not otp:
+                return Response({"error": "OTP is required for first-time users."}, status=400)
+
+            two_factor_service = TwoFactorService(phone=phone_number, otp=otp)
+            verification_response = two_factor_service.verify_otp()
+
+            if verification_response.get("Status") == "Success":
+                # OTP is valid, create the comment
+                Comment.objects.create(
+                    blog=blog,
+                    name=name,
+                    phone_number=phone_number,
+                    location=location,
+                    comment=comment_content
+                )
+                return Response({"message": "Comment added successfully."}, status=201)
+            else:
+                return Response({"error": "OTP verification failed. Please try again."}, status=400)
+            
+    except Exception as e:
+        return Response({"error": str(e)}, status=400)
