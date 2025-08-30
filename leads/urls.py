@@ -13,6 +13,8 @@ from leads.views.resolve_false_claim_view import ResolveFalseClaimView
 from leads.views.update_leads_view import UpdateLeadView
 from leads.views.views import AdminCreateLeadView, PublicLeadSubmissionView
 from leads.views.admin_leads_count_view import AdminLeadStatusCountView
+from leads.views.selected_artist_view import SelectedArtistView
+
 urlpatterns = [
     path('admin/create/', AdminCreateLeadView.as_view(), name='admin-create-lead'),
     path('public/submit/', PublicLeadSubmissionView.as_view(), name='public-lead-submit'),
@@ -31,8 +33,6 @@ urlpatterns = [
     path('false-claims/<int:claim_id>/', ClaimDetailView.as_view(), name='false-claim-detail'),
     path('false-claims/<int:pk>/resolve/', ResolveFalseClaimView.as_view(), name='resolve-false-claim'),
 
-
-
-
-
+    # Selected Artists Management
+    path('selected-artists/', SelectedArtistView.as_view(), name='selected-artists'),
 ]
