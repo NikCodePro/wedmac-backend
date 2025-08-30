@@ -5,3 +5,5 @@ db.txt
 *.pyc
 __pycache__/
 db.json
+/static/*
+.venv/*

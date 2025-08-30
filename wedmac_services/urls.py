@@ -34,4 +34,5 @@ urlpatterns = [
     path('api/support/', include('support_help.urls')),
     path('api/artist-services/', include('artist_services.urls')),
     path('api/reviews/', include('content_management.urls')),
+    path('api/artist-comments/', include('artist_comments.urls')),
 ]
