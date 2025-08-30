@@ -1,6 +1,6 @@
 # artists/views.py
 
-from rest_framework.permissions import IsAdminUser
+from superadmin_auth.permissions import IsSuperAdmin
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
@@ -8,7 +8,7 @@ from artists.models.models import ArtistProfile
 from artists.serializers.serializers import AdminArtistProfileSerializer
 
 class AdminArtistListView(APIView):
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsSuperAdmin]
 
     def get(self, request):
         status_filter = request.query_params.get("status", None)

@@ -164,7 +164,15 @@ class AdminArtistProfileSerializer(serializers.ModelSerializer):
             "profile_picture",
             "certifications",
             "created_at",
-            'my_referral_code'
+            'my_referral_code',
+            "bio",
+            "type_of_makeup",
+            "price_range",
+            "experience_years",
+            "services",
+            "profile_picture",
+            "certifications",
+            "id_documents",
         ]
 
     def get_profile_picture(self, obj):
