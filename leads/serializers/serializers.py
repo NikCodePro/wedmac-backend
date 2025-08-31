@@ -89,10 +89,6 @@ class LeadDetailSerializer(serializers.ModelSerializer):
         model = Lead
         fields = '__all__'
 
-
-
-
-
 # This serializer is used for the claimed leads list for artist dashboard
 
 
