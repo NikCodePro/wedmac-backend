@@ -82,6 +82,9 @@ class ArtistProfile(models.Model):
     # new: active/inactive flag for admin control
     is_active = models.BooleanField(default=True)
 
+    # new: current number of leads claimed by this artist (keeps in sync via Lead signals)
+    my_claimed_leads = models.IntegerField(default=0)
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

@@ -2,6 +2,9 @@ from django.db import models
 from django.conf import settings
 from adminpanel.models import BudgetRange, MakeupType, Service
 from artists.models import ArtistProfile, Location
+from django.db.models.signals import post_save, pre_save, post_delete
+from django.dispatch import receiver
+from artists.models.models import ArtistProfile
 
 class Lead(models.Model):
     EVENT_CHOICES = [
@@ -64,3 +67,52 @@ class Lead(models.Model):
 
     def __str__(self):
         return f"{self.first_name or ''} {self.last_name or ''} - {self.phone or ''}"
+
+# store previous assigned_to before save so we can update both old/new artists
+@receiver(pre_save, sender='leads.Lead')
+def _lead_pre_save(sender, instance, **kwargs):
+    if instance.pk:
+        try:
+            prev = sender.objects.get(pk=instance.pk)
+            instance._prev_assigned_to_id = getattr(prev, 'assigned_to_id', None)
+        except sender.DoesNotExist:
+            instance._prev_assigned_to_id = None
+    else:
+        instance._prev_assigned_to_id = None
+
+@receiver(post_save, sender='leads.Lead')
+def _lead_post_save(sender, instance, created, **kwargs):
+    prev_id = getattr(instance, '_prev_assigned_to_id', None)
+    curr_id = getattr(instance, 'assigned_to_id', None)
+
+    # update counts for previous artist (if any) and current artist (if any)
+    for artist_id in {prev_id, curr_id}:
+        if not artist_id:
+            continue
+        try:
+            artist = ArtistProfile.objects.get(pk=artist_id)
+            count = sender.objects.filter(
+                assigned_to_id=artist_id, status='claimed', is_deleted=False
+            ).count()
+            # update only if different to avoid needless writes
+            if artist.my_claimed_leads != count:
+                artist.my_claimed_leads = count
+                artist.save(update_fields=['my_claimed_leads'])
+        except ArtistProfile.DoesNotExist:
+            continue
+
+@receiver(post_delete, sender='leads.Lead')
+def _lead_post_delete(sender, instance, **kwargs):
+    artist_id = getattr(instance, 'assigned_to_id', None)
+    if not artist_id:
+        return
+    try:
+        artist = ArtistProfile.objects.get(pk=artist_id)
+        count = sender.objects.filter(
+            assigned_to_id=artist_id, status='claimed', is_deleted=False
+        ).count()
+        if artist.my_claimed_leads != count:
+            artist.my_claimed_leads = count
+            artist.save(update_fields=['my_claimed_leads'])
+    except ArtistProfile.DoesNotExist:
+        pass

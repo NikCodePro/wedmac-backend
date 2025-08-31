@@ -103,7 +103,10 @@ class ArtistProfileSerializer(serializers.ModelSerializer):
             'profile_picture', 'certifications', 'id_documents', 'supporting_images',
             'profile_picture_data', 'certifications_data',
             'id_documents_data', 'supporting_images_data',
-            'average_rating', 'total_ratings', 'status', 'payment_status', 'my_referral_code'
+            'average_rating', 'total_ratings', 'status', 'payment_status',
+            'my_referral_code',
+            # new: expose claimed leads count
+            'my_claimed_leads',
         ]
 
 
@@ -174,6 +177,8 @@ class AdminArtistProfileSerializer(serializers.ModelSerializer):
             "certifications",
             "id_documents",
             "is_active",
+            # new
+            "my_claimed_leads",
         ]
 
     def get_profile_picture(self, obj):
