@@ -139,7 +139,6 @@ def get_blog_by_id(request, project_id):
     }
     return Response(data, status=200)
 
-
 # New API View to send OTP for comment
 @api_view(['POST'])
 def send_otp_for_comment(request):
@@ -208,5 +207,48 @@ def add_comment(request, project_id):
             else:
                 return Response({"error": "OTP verification failed. Please try again."}, status=400)
             
+    except Exception as e:
+        return Response({"error": str(e)}, status=400)
+
+@api_view(['PUT'])
+def update_comment(request, project_id, comment_id):
+    """
+    Updates a user's existing comment.
+    """
+    try:
+        comment = get_object_or_404(Comment, id=comment_id, blog__project_id=project_id)
+        data = request.data
+        
+        # Security check: Ensure the phone number in the request matches the commenter's
+        if data.get('phone_number') != comment.phone_number:
+            return Response({"error": "Unauthorized: Phone number does not match commenter."}, status=403)
+            
+        comment.name = data.get('name', comment.name)
+        comment.location = data.get('location', comment.location)
+        comment.comment = data.get('comment', comment.comment)
+        comment.save()
+
+        return Response({"message": "Comment updated successfully."}, status=200)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=400)
+
+@api_view(['DELETE'])
+def delete_comment(request, project_id, comment_id):
+    """
+    Deletes a user's comment.
+    """
+    try:
+        comment = get_object_or_404(Comment, id=comment_id, blog__project_id=project_id)
+        data = request.data
+
+        # Security check: Ensure the phone number in the request matches the commenter's
+        if data.get('phone_number') != comment.phone_number:
+            return Response({"error": "Unauthorized: Phone number does not match commenter."}, status=403)
+
+        comment.delete()
+        
+        return Response({"message": "Comment deleted successfully."}, status=200)
+    
     except Exception as e:
         return Response({"error": str(e)}, status=400)
