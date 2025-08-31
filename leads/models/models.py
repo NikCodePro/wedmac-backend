@@ -18,6 +18,7 @@ class Lead(models.Model):
     STATUS_CHOICES = [
         ('new', 'New'),
         ('claimed', 'Claimed'),
+        ('booked', 'Booked'),
         ('qualified', 'Qualified'),
         ('unqualified', 'Unqualified'),
         ('converted', 'Converted'),
@@ -54,6 +55,10 @@ class Lead(models.Model):
         ArtistProfile, on_delete=models.SET_NULL, null=True, blank=True, related_name="requested_leads"
     )
 
+    max_claims = models.PositiveIntegerField(default=5)
+    claimed_artists = models.ManyToManyField(ArtistProfile, blank=True, related_name="claimed_leads")
+    booked_artists = models.ManyToManyField(ArtistProfile, blank=True, related_name="booked_leads")
+
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='new')
     last_contact = models.DateTimeField(null=True, blank=True)
     notes = models.TextField(blank=True)
@@ -82,10 +87,21 @@ def _lead_pre_save(sender, instance, **kwargs):
 
 @receiver(post_save, sender='leads.Lead')
 def _lead_post_save(sender, instance, created, **kwargs):
+    # Update my_claimed_leads count on ArtistProfile for claimed_artists
+    for artist in instance.claimed_artists.all():
+        try:
+            count = sender.objects.filter(
+                claimed_artists=artist, status='claimed', is_deleted=False
+            ).count()
+            if artist.my_claimed_leads != count:
+                artist.my_claimed_leads = count
+                artist.save(update_fields=['my_claimed_leads'])
+        except ArtistProfile.DoesNotExist:
+            continue
+
+    # Update my_claimed_leads count for previous assigned_to if changed
     prev_id = getattr(instance, '_prev_assigned_to_id', None)
     curr_id = getattr(instance, 'assigned_to_id', None)
-
-    # update counts for previous artist (if any) and current artist (if any)
     for artist_id in {prev_id, curr_id}:
         if not artist_id:
             continue
@@ -94,7 +110,6 @@ def _lead_post_save(sender, instance, created, **kwargs):
             count = sender.objects.filter(
                 assigned_to_id=artist_id, status='claimed', is_deleted=False
             ).count()
-            # update only if different to avoid needless writes
             if artist.my_claimed_leads != count:
                 artist.my_claimed_leads = count
                 artist.save(update_fields=['my_claimed_leads'])
@@ -103,6 +118,19 @@ def _lead_post_save(sender, instance, created, **kwargs):
 
 @receiver(post_delete, sender='leads.Lead')
 def _lead_post_delete(sender, instance, **kwargs):
+    # Update my_claimed_leads count on ArtistProfile for claimed_artists
+    for artist in instance.claimed_artists.all():
+        try:
+            count = sender.objects.filter(
+                claimed_artists=artist, status='claimed', is_deleted=False
+            ).count()
+            if artist.my_claimed_leads != count:
+                artist.my_claimed_leads = count
+                artist.save(update_fields=['my_claimed_leads'])
+        except ArtistProfile.DoesNotExist:
+            continue
+
+    # Update my_claimed_leads count for assigned_to
     artist_id = getattr(instance, 'assigned_to_id', None)
     if not artist_id:
         return

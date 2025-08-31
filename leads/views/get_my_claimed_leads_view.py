@@ -17,9 +17,22 @@ class GetMyClaimedLeadsView(APIView):
             return Response({"error": "Only artists can access their claimed leads."}, status=403)
 
         leads = Lead.objects.filter(
-            assigned_to=artist_profile,
+            claimed_artists=artist_profile,
             is_deleted=False
         ).order_by('-created_at')
 
         serializer = ClaimedLeadListSerializer(leads, many=True)
-        return Response(serializer.data, status=200)
+        leads_data = serializer.data
+
+        # Add budget, makeup_types, assigned_count, claimed_count to each lead
+        for i, lead in enumerate(leads):
+            leads_data[i]['budget_range'] = lead.budget_range.label if lead.budget_range else None
+            leads_data[i]['makeup_types'] = [mt.name for mt in lead.makeup_types.all()]
+            leads_data[i]['assigned_count'] = lead.booked_artists.count()  # Artists who have booked this lead
+            leads_data[i]['claimed_count'] = lead.claimed_artists.count()  # Artists who have claimed this lead
+
+        return Response({
+            "message": "Fetched claimed leads successfully.",
+            "count": leads.count(),
+            "leads": leads_data
+        }, status=200)

@@ -3,21 +3,54 @@ from leads.models.models import Lead
 from adminpanel.models import BudgetRange, MakeupType, Service
 from artists.models import ArtistProfile, Location
 from users.models import User
-from rest_framework import serializers
-from leads.models.models import Lead
-from adminpanel.models import Service, BudgetRange, MakeupType
-from artists.models import Location, ArtistProfile
+
+class NestedServiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Service
+        fields = ['id', 'name', 'description']
+
+class NestedBudgetRangeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BudgetRange
+        fields = ['id', 'label', 'min_value', 'max_value']
+
+class NestedMakeupTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MakeupType
+        fields = ['id', 'name', 'description']
+
+class NestedLocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Location
+        fields = ['id', 'city', 'state', 'pincode']
 
 
 class LeadSerializer(serializers.ModelSerializer):
-    makeup_types = serializers.PrimaryKeyRelatedField(
-        many=True, queryset=MakeupType.objects.all()
+    makeup_types = NestedMakeupTypeSerializer(many=True, read_only=True)
+    budget_range = NestedBudgetRangeSerializer(read_only=True)
+    service = NestedServiceSerializer(read_only=True)
+    location = NestedLocationSerializer(read_only=True)
+    claimed_artists = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=ArtistProfile.objects.all(), required=False
     )
+    booked_artists = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=ArtistProfile.objects.all(), required=False
+    )
+    claimed_count = serializers.SerializerMethodField()
+    booked_count = serializers.SerializerMethodField()
+    max_claims = serializers.IntegerField(required=False)
+
 
     class Meta:
         model = Lead
         fields = '__all__'
         read_only_fields = ['created_by', 'created_at', 'updated_at']
+
+    def get_claimed_count(self, obj):
+        return obj.claimed_artists.count()
+
+    def get_booked_count(self, obj):
+        return obj.booked_artists.count()
 
 # this serializer is used for the recent leads list for artist dashboard
 class LeadDashboardListSerializer(serializers.ModelSerializer):
@@ -45,25 +78,6 @@ class LeadDashboardListSerializer(serializers.ModelSerializer):
         }
 
 # This is your nested serializer for lead detail view
-class NestedServiceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Service
-        fields = ['id', 'name', 'description']
-
-class NestedBudgetRangeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = BudgetRange
-        fields = ['id', 'label', 'min_value', 'max_value']
-
-class NestedMakeupTypeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = MakeupType
-        fields = ['id', 'name', 'description']
-
-class NestedLocationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Location
-        fields = ['id',  'city', 'state', 'pincode']
 
 class NestedArtistProfileSerializer(serializers.ModelSerializer):
     class Meta:
@@ -84,10 +98,20 @@ class LeadDetailSerializer(serializers.ModelSerializer):
     assigned_to = NestedArtistProfileSerializer(read_only=True)
     requested_artist = NestedArtistProfileSerializer(read_only=True)
     created_by = NestedUserSerializer(read_only=True)
+    claimed_artists = NestedArtistProfileSerializer(read_only=True, many=True)
+    booked_artists = NestedArtistProfileSerializer(read_only=True, many=True)
+    claimed_count = serializers.SerializerMethodField()
+    booked_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Lead
         fields = '__all__'
+
+    def get_claimed_count(self, obj):
+        return obj.claimed_artists.count()
+
+    def get_booked_count(self, obj):
+        return obj.booked_artists.count()
 
 # This serializer is used for the claimed leads list for artist dashboard
 
@@ -104,6 +128,8 @@ class ClaimedLeadListSerializer(serializers.ModelSerializer):
     location = serializers.StringRelatedField()
     assigned_to = serializers.StringRelatedField()
     requested_artist = serializers.StringRelatedField()
+    claimed_count = serializers.SerializerMethodField()
+    booked_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Lead
@@ -112,5 +138,12 @@ class ClaimedLeadListSerializer(serializers.ModelSerializer):
             'event_type', 'requirements', 'booking_date', 'source', 'status',
             'last_contact', 'notes', 'created_at', 'updated_at',
             'service', 'budget_range', 'location',
-            'assigned_to', 'requested_artist', 'created_by'
+            'assigned_to', 'requested_artist', 'created_by',
+            'claimed_count', 'booked_count'
         ]
+
+    def get_claimed_count(self, obj):
+        return obj.claimed_artists.count()
+
+    def get_booked_count(self, obj):
+        return obj.booked_artists.count()

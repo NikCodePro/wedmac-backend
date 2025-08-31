@@ -26,29 +26,26 @@ def get_active_distribution_strategy():
 # ------------------------------
 
 def get_next_artist_round_robin():
-    # Get only selected and active artists
-    selected_artists = SelectedArtist.objects.filter(
-        is_active=True,
-        artist__status='approved'
-    ).select_related('artist')
+    # Fetch all eligible artists
+    artists = ArtistProfile.objects.filter(status='approved').order_by('id')
 
-    if not selected_artists.exists():
+    if not artists.exists():
         return None
 
     # Get the last used pointer from config
     pointer = get_config_value("CURRENT_ARTIST_POINTER")
     pointer = int(pointer) if pointer and pointer.isdigit() else None
 
-    artist_ids = list(selected_artists.values_list('artist_id', flat=True))
+    artist_ids = list(artists.values_list('id', flat=True))
 
     try:
         current_index = artist_ids.index(pointer)
         next_index = (current_index + 1) % len(artist_ids)
     except ValueError:
-        next_index = 0
+        next_index = 0  # fallback to first artist if pointer is invalid
 
     next_artist_id = artist_ids[next_index]
-    next_artist = selected_artists.get(artist_id=next_artist_id).artist
+    next_artist = ArtistProfile.objects.get(id=next_artist_id)
 
     # Update the pointer in config
     LeadDistributionConfig.objects.update_or_create(

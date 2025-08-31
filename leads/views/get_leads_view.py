@@ -18,8 +18,15 @@ class GetLeadsByStatusView(APIView):
             leads = leads.annotate(lower_status=Lower('status')).filter(lower_status=status_param)
 
         serializer = LeadSerializer(leads.order_by('-created_at'), many=True)
+        leads_data = serializer.data
+
+        # Add new fields claimed_count and booked_count to each lead in response
+        for i, lead in enumerate(leads):
+            leads_data[i]['claimed_count'] = lead.claimed_artists.count()
+            leads_data[i]['booked_count'] = lead.booked_artists.count()
+
         return Response({
             "message": f"Fetched {status_param if status_param != 'all' else 'all'} leads successfully.",
             "count": leads.count(),
-            "leads": serializer.data
+            "leads": leads_data
         }, status=200)

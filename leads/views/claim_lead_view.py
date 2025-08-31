@@ -21,37 +21,29 @@ class ClaimLeadView(APIView):
             except ArtistProfile.DoesNotExist:
                 return Response({"error": "Artist profile not found."}, status=404)
 
-            # 2. Check available leads
-            if artist_profile.available_leads <= 0:
-                return Response({
-                    "error": "No leads available. Please purchase more leads.",
-                    "available_leads": 0
-                }, status=403)
-
-            # 3. Get the lead
+            # 2. Get the lead
             try:
                 lead = Lead.objects.select_for_update().get(id=lead_id, is_deleted=False)
             except Lead.DoesNotExist:
                 return Response({"error": "Lead not found."}, status=404)
 
-            # 4. Check if already assigned
-            if lead.assigned_to:
-                return Response({"error": "Lead already claimed by another artist."}, status=400)
+            # 3. Check if artist already claimed this lead
+            if lead.claimed_artists.filter(id=artist_profile.id).exists():
+                return Response({"error": "You have already claimed this lead."}, status=400)
 
-            # 5. Deduct one lead from available_leads
-            artist_profile.available_leads -= 1
-            artist_profile.save()
+            # 4. Check if max claims reached
+            if lead.claimed_artists.count() >= lead.max_claims:
+                return Response({"error": "Maximum claims reached for this lead."}, status=400)
 
-            # 6. Assign lead to artist
-            lead.assigned_to = artist_profile
-            lead.status = 'claimed'  # Changed from 'contacted' to 'claimed'
+            # 5. Add artist to claimed_artists
+            lead.claimed_artists.add(artist_profile)
             lead.save()
 
             return Response({
                 "message": "Lead claimed successfully.",
                 "lead_id": lead.id,
-                "status": lead.status,
-                "available_leads": artist_profile.available_leads,
+                "claimed_count": lead.claimed_artists.count(),
+                "max_claims": lead.max_claims,
                 "created_at": lead.created_at,
                 "updated_at": lead.updated_at
             }, status=200)

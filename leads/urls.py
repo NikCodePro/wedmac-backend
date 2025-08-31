@@ -14,6 +14,8 @@ from leads.views.update_leads_view import UpdateLeadView
 from leads.views.views import AdminCreateLeadView, PublicLeadSubmissionView
 from leads.views.admin_leads_count_view import AdminLeadStatusCountView
 from leads.views.selected_artist_view import SelectedArtistView
+from leads.views.set_max_claims_view import SetMaxClaimsView
+from leads.views.bulk_set_max_claims_view import BulkSetMaxClaimsView
 
 urlpatterns = [
     path('admin/create/', AdminCreateLeadView.as_view(), name='admin-create-lead'),
@@ -35,4 +37,10 @@ urlpatterns = [
 
     # Selected Artists Management
     path('selected-artists/', SelectedArtistView.as_view(), name='selected-artists'),
+
+    # Admin set max claims for a lead
+    path('<int:lead_id>/set-max-claims/', SetMaxClaimsView.as_view(), name='set-max-claims'),
+
+    # Admin bulk set max claims for all leads
+    path('bulk-set-max-claims/', BulkSetMaxClaimsView.as_view(), name='bulk-set-max-claims'),
 ]
