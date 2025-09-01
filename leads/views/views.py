@@ -155,3 +155,18 @@ class AdminCreateMultipleLeadsView(APIView):
             "message": "Bulk lead creation completed",
             "results": results
         }, status=200)
+
+
+class AdminDeleteLeadView(APIView):
+    """
+    Admin panel view: Admins delete a lead by ID.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, lead_id):
+        try:
+            lead = Lead.objects.get(id=lead_id)
+            lead.delete()
+            return Response({"message": "Lead deleted successfully"}, status=200)
+        except Lead.DoesNotExist:
+            return Response({"error": "Lead not found"}, status=404)

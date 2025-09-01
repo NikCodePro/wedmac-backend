@@ -11,7 +11,7 @@ from leads.views.list_false_claims_admin_view import ListFalseClaimsAdminView
 from leads.views.raise_false_claim_view import RaiseFalseLeadClaimView
 from leads.views.resolve_false_claim_view import ResolveFalseClaimView
 from leads.views.update_leads_view import UpdateLeadView
-from leads.views.views import AdminCreateLeadView, PublicLeadSubmissionView, AdminCreateMultipleLeadsView
+from leads.views.views import AdminCreateLeadView, PublicLeadSubmissionView, AdminCreateMultipleLeadsView, AdminDeleteLeadView
 from leads.views.admin_leads_count_view import AdminLeadStatusCountView
 from leads.views.selected_artist_view import SelectedArtistView
 from leads.views.set_max_claims_view import SetMaxClaimsView
@@ -20,6 +20,7 @@ from leads.views.bulk_set_max_claims_view import BulkSetMaxClaimsView
 urlpatterns = [
     path('admin/create/', AdminCreateLeadView.as_view(), name='admin-create-lead'),
     path('admin/create-multiple/', AdminCreateMultipleLeadsView.as_view(), name='admin-create-multiple-leads'),
+    path('admin/delete/<int:lead_id>/', AdminDeleteLeadView.as_view(), name='admin-delete-lead'),
     path('public/submit/', PublicLeadSubmissionView.as_view(), name='public-lead-submit'),
     path('list/', GetLeadsByStatusView.as_view(), name='get-leads-by-status'),
     path('<int:lead_id>/update/', UpdateLeadView.as_view(), name='update-lead'),
