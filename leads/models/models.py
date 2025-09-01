@@ -70,6 +70,9 @@ class Lead(models.Model):
     deleted_at = models.DateTimeField(null=True, blank=True)
     is_deleted = models.BooleanField(default=False)
 
+    total_bookings = models.IntegerField(default=0)
+    total_claims = models.IntegerField(default=0)
+
     def __str__(self):
         return f"{self.first_name or ''} {self.last_name or ''} - {self.phone or ''}"
 
