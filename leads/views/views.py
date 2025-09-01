@@ -119,3 +119,39 @@ class PublicLeadSubmissionView(APIView):
         response = NotificationService(messages=messages).send_notifications()
         print("Lead Notification Response:", response)
         return response
+
+
+class AdminCreateMultipleLeadsView(APIView):
+    """
+    Admin panel view: Admins create multiple leads manually.
+    Will auto-assign each lead only if an active distribution strategy exists.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        leads_data = request.data.get('leads', [])
+        if not isinstance(leads_data, list):
+            return Response({"error": "Expected a list of leads under 'leads' key"}, status=400)
+
+        results = []
+        for lead_data in leads_data:
+            serializer = LeadSerializer(data=lead_data)
+            if serializer.is_valid():
+                lead = serializer.save(created_by=request.user)
+                # Try assigning automatically (only if strategy is active)
+                artist = assign_lead_automatically(lead)
+                results.append({
+                    "success": True,
+                    "lead": serializer.data,
+                    "assigned_to": artist.first_name + " " + artist.last_name + " Mobile: " + artist.user.username if artist else None
+                })
+            else:
+                results.append({
+                    "success": False,
+                    "errors": serializer.errors
+                })
+
+        return Response({
+            "message": "Bulk lead creation completed",
+            "results": results
+        }, status=200)
