@@ -5,36 +5,86 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.exceptions import ValidationError
-from django.contrib.auth import authenticate
+from django.contrib.auth import get_user_model, authenticate
+from users.models import OTPVerification
+from notifications.services import TwoFactorService
+import random
+from django.utils import timezone
 # from .serializers import SuperAdminLoginSerializer
+
+User = get_user_model()
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def superadmin_login(request):
-    """Superadmin login endpoint - accepts username/email and password"""
+    """Superadmin login endpoint - sends OTP via call"""
     try:
-        username = request.data.get('username')
-        password = request.data.get('password')
-        print("Username:", username, "Password:", password)
+        phone = request.data.get('phone')
+        print("Phone:", phone)
 
-        if not username or not password:
+        if not phone:
             return Response(
-                {'error': 'Please provide both username and password'},
+                {'error': 'Please provide phone number'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        user = authenticate(username=username, password=password)
-
-        if not user:
+        try:
+            user = User.objects.get(phone=phone, is_superuser=True)
+        except User.DoesNotExist:
             return Response(
-                {'error': 'Invalid credentials'},
-                status=status.HTTP_401_UNAUTHORIZED
+                {'error': 'Superadmin not found'},
+                status=status.HTTP_404_NOT_FOUND
             )
 
-        if not user.is_superuser:
+        otp = str(random.randint(100000, 999999))
+        OTPVerification.objects.create(phone=phone, otp=otp)
+
+        # Send OTP via call
+        service = TwoFactorService(phone=phone, otp=otp, mode="call")
+        response = service.send_otp()
+        print("OTP send response:", response)
+
+        return Response({
+            'message': 'OTP sent via call'
+        }, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        return Response(
+            {'error': str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def superadmin_verify_otp(request):
+    """Verify OTP and login superadmin"""
+    try:
+        phone = request.data.get('phone')
+        otp = request.data.get('otp')
+
+        if not phone or not otp:
             return Response(
-                {'error': 'User is not authorized as superadmin'},
-                status=status.HTTP_403_FORBIDDEN
+                {'error': 'Please provide phone and OTP'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        otp_obj = OTPVerification.objects.filter(phone=phone, otp=otp).first()
+
+        if not otp_obj or otp_obj.is_expired():
+            return Response(
+                {'error': 'Invalid or expired OTP'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # OTP valid, delete it
+        otp_obj.delete()
+
+        try:
+            user = User.objects.get(phone=phone, is_superuser=True)
+        except User.DoesNotExist:
+            return Response(
+                {'error': 'Superadmin not found'},
+                status=status.HTTP_404_NOT_FOUND
             )
 
         refresh = RefreshToken.for_user(user)
