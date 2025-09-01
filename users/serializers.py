@@ -1,8 +1,7 @@
-# users/serializers.py
-
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import User
+from artists.models.models import Location
 
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
@@ -34,3 +33,20 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         data["user_id"] = user.id
         data["role"] = user.role
         return data
+
+class AdminArtistSerializer(serializers.Serializer):
+    first_name = serializers.CharField(max_length=100)
+    last_name = serializers.CharField(max_length=100)
+    phone = serializers.CharField(max_length=15)
+    email = serializers.EmailField(required=False, allow_blank=True)
+    gender = serializers.CharField(max_length=10, required=False, allow_blank=True)
+    city = serializers.CharField(max_length=100)
+    state = serializers.CharField(max_length=100)
+    pincode = serializers.CharField(max_length=10, required=False, allow_blank=True)
+    lat = serializers.FloatField(required=False)
+    lng = serializers.FloatField(required=False)
+
+    def validate_phone(self, value):
+        if User.objects.filter(phone=value).exists():
+            raise serializers.ValidationError("Phone number already exists.")
+        return value

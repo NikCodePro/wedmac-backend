@@ -3,7 +3,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 
 from users.views.login_views import OTPLoginView, RequestLoginOTPView
 from users.views.logout import LogoutView
-from users.views.registration_views import RequestOTPView, VerifyOTPView
+from users.views.registration_views import RequestOTPView, VerifyOTPView, AdminCreateArtistView
 from users.views.token_views import CustomTokenObtainPairView
 
 
@@ -22,6 +22,8 @@ urlpatterns = [
     path("login-otp/", OTPLoginView.as_view(), name="login-otp"),
     path('logout/', LogoutView.as_view(), name='logout'),
 
+    # Admin create artist without OTP
+    path('admin/create-artist/', AdminCreateArtistView.as_view(), name='admin_create_artist'),
 
     # Protected route
 ]

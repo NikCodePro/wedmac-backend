@@ -9,12 +9,15 @@ from appconfig.utils import MasterConfigManager
 from artists.models.models import ArtistProfile , Location
 import random
 from django.utils import timezone
+from django.db import transaction
 from notifications.services import TwoFactorService
 from notifications.services import NotificationService
 from users.models import OTPVerification, User
 import re
 from users.views.utils import is_master_otp
-
+from users.serializers import AdminArtistSerializer
+# from users.permissions import IsAdminRole
+from superadmin_auth.permissions import IsSuperAdmin
 DUMMY_OTP = '123456'  #Simulated OTP for now
 
 class RequestOTPView(APIView):
@@ -206,4 +209,76 @@ class VerifyOTPView(APIView):
         response = NotificationService(messages=messages).send_notifications()
         print("Bulk SMS Response:", response)
         return response
+
+
+class AdminCreateArtistView(APIView):
+    permission_classes = [IsSuperAdmin]
+
+    def post(self, request):
+        serializer = AdminArtistSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        data = serializer.validated_data
+
+        # Validate phone format
+        phone = data['phone'].strip()
+        if not re.fullmatch(r'\d{10}', phone):
+            return Response({'error': 'Phone number must be exactly 10 digits.'}, status=400)
+        if not re.fullmatch(r'[6-9]\d{9}', phone):
+            return Response({'error': 'Enter a valid 10-digit Indian mobile number.'}, status=400)
+
+        # Check if phone already exists in User or ArtistProfile
+        if User.objects.filter(phone=phone).exists() or ArtistProfile.objects.filter(phone=phone).exists():
+            return Response({'error': 'Phone number already exists.'}, status=400)
+
+        # Create Location
+        location_obj, _ = Location.objects.get_or_create(
+            city=data['city'],
+            state=data['state'],
+            pincode=data.get('pincode', ''),
+            defaults={
+                'lat': data.get('lat', 0.0),
+                'lng': data.get('lng', 0.0)
+            }
+        )
+
+        # Use transaction to ensure both User and ArtistProfile are created together
+        with transaction.atomic():
+            # Create User
+            user = User.objects.create(
+                username=phone,
+                first_name=data['first_name'],
+                last_name=data['last_name'],
+                phone=phone,
+                email=data.get('email', ''),
+                gender=data.get('gender', ''),
+                role='artist',
+                location=location_obj,
+                otp_verified=True,
+                is_artist_approved=True
+            )
+
+            # Create ArtistProfile
+            ArtistProfile.objects.create(
+                user=user,
+                first_name=user.first_name,
+                last_name=user.last_name,
+                phone=user.phone,
+                email=user.email,
+                gender=user.gender,
+                location=location_obj,
+                status='approved',
+                total_bookings=0
+            )
+
+        # Generate JWT tokens like normal registration
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            'message': 'Artist created successfully by admin.',
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+            'user_id': user.id,
+            'role': user.role,
+        }, status=status.HTTP_201_CREATED)
 
