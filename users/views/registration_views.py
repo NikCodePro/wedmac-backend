@@ -282,3 +282,35 @@ class AdminCreateArtistView(APIView):
             'role': user.role,
         }, status=status.HTTP_201_CREATED)
 
+
+class AdminLoginAsArtistView(APIView):
+    permission_classes = [IsSuperAdmin]
+
+    def post(self, request):
+        phone = request.data.get('phone')
+
+        if not phone:
+            return Response({'error': 'Artist phone number is required.'}, status=400)
+
+        try:
+            user = User.objects.get(phone=phone, role='artist')
+
+            # Check if artist profile exists and is approved
+            # if  ArtistProfile.status != 'approved':
+            #     return Response({'error': 'Artist is not approved.'}, status=400)
+
+            if not user.is_active:
+                return Response({'error': 'Artist account is inactive.'}, status=400)
+
+            refresh = RefreshToken.for_user(user)
+            return Response({
+                'message': f'Successfully logged in as artist {user.first_name} {user.last_name}.',
+                'access': str(refresh.access_token),
+                'refresh': str(refresh),
+                'user_id': user.id,
+                'role': user.role,
+            })
+
+        except User.DoesNotExist:
+            return Response({'error': 'Artist not found.'}, status=404)
+
