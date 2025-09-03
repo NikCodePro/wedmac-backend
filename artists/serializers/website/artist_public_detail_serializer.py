@@ -3,6 +3,7 @@
 from rest_framework import serializers
 from artists.models.models import ArtistProfile, SocialLink
 from documents.models import Document
+from .payment_method_serializer import PaymentMethodSerializer
 
 
 class DocumentURLSerializer(serializers.ModelSerializer):
@@ -25,6 +26,7 @@ class ArtistPublicDetailSerializer(serializers.ModelSerializer):
     portfolio_photos = serializers.SerializerMethodField()
     certifications = DocumentURLSerializer(many=True)
     social_links = SocialLinkSerializer(many=True, read_only=True)
+    payment_methods = PaymentMethodSerializer(many=True, read_only=True)
     
     class Meta:
         model = ArtistProfile
@@ -49,6 +51,8 @@ class ArtistPublicDetailSerializer(serializers.ModelSerializer):
             'travel_policy',
             'trial_available',
             'travel_charges',
+            'payment_methods',
+            'travel_policy',
         ]
 
     def get_full_name(self, obj):
@@ -73,4 +77,3 @@ class ArtistPublicDetailSerializer(serializers.ModelSerializer):
 
     def get_portfolio_photos(self, obj):
         return [doc.file_url for doc in obj.supporting_images.all()]
-    
