@@ -44,7 +44,7 @@ class Lead(models.Model):
 
     budget_range = models.ForeignKey(BudgetRange, on_delete=models.SET_NULL, null=True)
     makeup_types = models.ManyToManyField(MakeupType, blank=True)
-    location = models.ForeignKey(Location, on_delete=models.SET_NULL, null=True)
+    location = models.CharField(max_length=100, null=True, blank=True)
 
     source = models.CharField(max_length=50, choices=SOURCE_CHOICES, null=True, blank=True)
 
