@@ -170,3 +170,25 @@ class AdminDeleteLeadView(APIView):
             return Response({"message": "Lead deleted successfully"}, status=200)
         except Lead.DoesNotExist:
             return Response({"error": "Lead not found"}, status=404)
+
+
+class GetMyAssignedLeadsView(APIView):
+    """
+    Artist view: Get leads assigned to the logged-in artist.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            artist_profile = request.user.artist_profile
+        except:
+            return Response({"error": "Artist profile not found."}, status=404)
+
+        leads = Lead.objects.filter(assigned_to=artist_profile, is_deleted=False).order_by('-created_at')
+        serializer = LeadSerializer(leads, many=True)
+
+        return Response({
+            "message": "Assigned leads fetched successfully.",
+            "count": leads.count(),
+            "leads": serializer.data
+        }, status=200)

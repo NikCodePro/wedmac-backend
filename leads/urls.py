@@ -12,7 +12,7 @@ from leads.views.list_false_claims_admin_view import ListFalseClaimsAdminView
 from leads.views.raise_false_claim_view import RaiseFalseLeadClaimView
 from leads.views.resolve_false_claim_view import ResolveFalseClaimView
 from leads.views.update_leads_view import UpdateLeadView
-from leads.views.views import AdminCreateLeadView, PublicLeadSubmissionView, AdminCreateMultipleLeadsView, AdminDeleteLeadView
+from leads.views.views import AdminCreateLeadView, PublicLeadSubmissionView, AdminCreateMultipleLeadsView, AdminDeleteLeadView, GetMyAssignedLeadsView
 from leads.views.admin_leads_count_view import AdminLeadStatusCountView
 from leads.views.selected_artist_view import SelectedArtistView
 from leads.views.set_max_claims_view import SetMaxClaimsView
@@ -30,6 +30,7 @@ urlpatterns = [
     path('artist/recent-leads/', ArtistRecentLeadsView.as_view()),
     path('<int:lead_id>/claim/', ClaimLeadView.as_view(), name='claim-lead'),
     path('<int:lead_id>/book/', BookLeadView.as_view(), name='book-lead'),
+    path('artist/my-assigned-leads/', GetMyAssignedLeadsView.as_view(), name='my-assigned-leads'),
     path('artist/my-claimed-leads/', GetMyClaimedLeadsView.as_view(), name='my-claimed-leads'),
 
     # False Claims
