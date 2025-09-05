@@ -4,9 +4,10 @@ from rest_framework.response import Response
 from leads.models.false_lead_claim import FalseLeadClaim
 from leads.serializers.false_lead_claim_serializer import FalseLeadClaimSerializer
 from users.permissions import IsAdminRole  # ✅ Correct import
+from superadmin_auth.permissions import IsSuperAdmin  # ✅ Correct import
 
 class ListFalseClaimsAdminView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminRole]
+    permission_classes = [IsSuperAdmin]
 
     def get(self, request):
         status_filter = request.query_params.get('status', 'pending')
