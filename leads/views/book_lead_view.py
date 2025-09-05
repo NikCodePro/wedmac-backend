@@ -32,11 +32,15 @@ class BookLeadView(APIView):
             except Lead.DoesNotExist:
                 return Response({"error": "Lead not found."}, status=404)
 
-            # 4. Check if artist has claimed this lead
+            # 4. Check if lead is already booked by another artist
+            if lead.booked_artists.exists():
+                return Response({"error": "This lead has already been booked by another artist."}, status=400)
+
+            # 5. Check if artist has claimed this lead
             if not lead.claimed_artists.filter(id=artist_profile.id).exists():
                 return Response({"error": "You must claim this lead before booking it."}, status=400)
 
-            # 5. Check if already booked by this artist
+            # 6. Check if already booked by this artist
             if lead.booked_artists.filter(id=artist_profile.id).exists():
                 return Response({"error": "You have already booked this lead."}, status=400)
 

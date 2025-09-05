@@ -4,6 +4,13 @@ from adminpanel.models import BudgetRange, MakeupType, Service
 from artists.models import ArtistProfile, Location
 from users.models import User
 
+# This is your nested serializer for lead detail view
+
+class NestedArtistProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ArtistProfile
+        fields = ['id', 'first_name','last_name','phone']
+
 class NestedServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Service
@@ -30,12 +37,10 @@ class LeadSerializer(serializers.ModelSerializer):
     budget_range = serializers.PrimaryKeyRelatedField(queryset=BudgetRange.objects.all(), required=False)
     service = serializers.PrimaryKeyRelatedField(queryset=Service.objects.all(), required=False)
     location = serializers.CharField(required=False)
-    claimed_artists = serializers.PrimaryKeyRelatedField(
-        many=True, queryset=ArtistProfile.objects.all(), required=False
-    )
-    booked_artists = serializers.PrimaryKeyRelatedField(
-        many=True, queryset=ArtistProfile.objects.all(), required=False
-    )
+    claimed_artists = NestedArtistProfileSerializer(read_only=True, many=True)
+    booked_artists = NestedArtistProfileSerializer(read_only=True, many=True)
+    assigned_to = NestedArtistProfileSerializer(read_only=True)
+    requested_artist = NestedArtistProfileSerializer(read_only=True)
     claimed_count = serializers.SerializerMethodField()
     booked_count = serializers.SerializerMethodField()
     max_claims = serializers.IntegerField(required=False)
@@ -84,13 +89,6 @@ class LeadDashboardListSerializer(serializers.ModelSerializer):
             'min_value': getattr(br, 'min_value', None),
             'max_value': getattr(br, 'max_value', None),
         }
-
-# This is your nested serializer for lead detail view
-
-class NestedArtistProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ArtistProfile
-        fields = ['id', 'first_name','last_name','phone']
 
 class NestedUserSerializer(serializers.ModelSerializer):
     class Meta:

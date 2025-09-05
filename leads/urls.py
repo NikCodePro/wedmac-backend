@@ -2,6 +2,7 @@ from django.urls import path
 
 from leads.views.claim_detail_view import ClaimDetailView
 from leads.views.claim_lead_view import ClaimLeadView
+from leads.views.book_lead_view import BookLeadView
 from leads.views.get_artist_dashboard_recent_lead_view import ArtistRecentLeadsView
 from leads.views.get_lead_detail_view import LeadDetailView
 from leads.views.get_leads_view import GetLeadsByStatusView
@@ -28,6 +29,7 @@ urlpatterns = [
     path('lead-detail/<int:lead_id>/', LeadDetailView.as_view(), name='get-single-lead'),
     path('artist/recent-leads/', ArtistRecentLeadsView.as_view()),
     path('<int:lead_id>/claim/', ClaimLeadView.as_view(), name='claim-lead'),
+    path('<int:lead_id>/book/', BookLeadView.as_view(), name='book-lead'),
     path('artist/my-claimed-leads/', GetMyClaimedLeadsView.as_view(), name='my-claimed-leads'),
 
     # False Claims
