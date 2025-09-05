@@ -10,9 +10,13 @@ from users.models import OTPVerification
 from notifications.services import TwoFactorService
 import random
 from django.utils import timezone
+import os
 # from .serializers import SuperAdminLoginSerializer
 
 User = get_user_model()
+
+# Master OTP for superadmin login (should be set as environment variable in production)
+MASTER_OTP = os.getenv('SUPERADMIN_MASTER_OTP', '123456')  # Default for testing
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -68,16 +72,22 @@ def superadmin_verify_otp(request):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        otp_obj = OTPVerification.objects.filter(phone=phone, otp=otp).first()
+        # Check if master OTP is used
+        if otp == MASTER_OTP:
+            # Master OTP used, skip regular OTP verification
+            pass
+        else:
+            # Regular OTP verification
+            otp_obj = OTPVerification.objects.filter(phone=phone, otp=otp).first()
 
-        if not otp_obj or otp_obj.is_expired():
-            return Response(
-                {'error': 'Invalid or expired OTP'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            if not otp_obj or otp_obj.is_expired():
+                return Response(
+                    {'error': 'Invalid or expired OTP'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
-        # OTP valid, delete it
-        otp_obj.delete()
+            # OTP valid, delete it
+            otp_obj.delete()
 
         try:
             user = User.objects.get(phone=phone, is_superuser=True)

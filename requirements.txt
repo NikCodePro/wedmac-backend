@@ -12,6 +12,7 @@ mysqlclient==2.2.7
 pydotplus==2.0.2
 PyJWT==2.9.0
 pyparsing==3.2.3
+python-decouple==3.8
 razorpay==1.4.2
 requests==2.32.4
 six==1.17.0

@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from datetime import timedelta
 from pathlib import Path
 import cloudinary #type : ignore
+from decouple import config
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -23,14 +24,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-9-s0ao(gd)ml=cvbo3-bbw@1)^$i3w0c5iql@%7h=_2c6k&cla'
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 import os
 # Add this to your settings
-MASTER_OTP = '987654'  # Choose your 6-digit master OTP
-DEBUG = True
-# DEBUG = os.getenv("DEBUG", "False") == "True"
+MASTER_OTP = config('MASTER_OTP', default='987654')  # Choose your 6-digit master OTP
+DEBUG = config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = ["89.116.33.217 ", "localhost", "127.0.0.1","wedmac-be.onrender.com","api.wedmacindia.com"]
 
@@ -144,11 +144,11 @@ WSGI_APPLICATION = 'wedmac_services.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'wedmac',
-        'USER': 'root',
-        'PASSWORD': 'CBVtBgYaNvTyZsyolMSGmGwEkDldZfbm',
-        'HOST': 'switchyard.proxy.rlwy.net',
-        'PORT': '39675',
+        'NAME': config('DB_NAME'),
+        'USER': config('DB_USER'),
+        'PASSWORD': config('DB_PASSWORD'),
+        'HOST': config('DB_HOST'),
+        'PORT': config('DB_PORT'),
     }
 }
 
@@ -170,8 +170,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-TWOFACTOR_API_KEY = "481b9b49-4f9e-11f0-a562-0200cd936042" # Replace with your actual API key
-DLT_TAG = "WEDMAC"  # Replace with your actual DLT tag
+TWOFACTOR_API_KEY = config('TWOFACTOR_API_KEY')
+DLT_TAG = config('DLT_TAG')
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
@@ -213,14 +213,14 @@ import os
 import cloudinary
 
 cloudinary.config(
-    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME", "dyu12nerp"),
-    api_key=os.getenv("CLOUDINARY_API_KEY", "639518621389713"),
-    api_secret=os.getenv("CLOUDINARY_API_SECRET", "1nW-c9zM0gUMs8Sp-SCgb9_mDNM")
+    cloud_name=config('CLOUDINARY_CLOUD_NAME'),
+    api_key=config('CLOUDINARY_API_KEY'),
+    api_secret=config('CLOUDINARY_API_SECRET')
 )
 
 # Default File Storage (for images and media)
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 # Razorpay Credentials
-RAZORPAY_KEY_ID = 'rzp_test_l7Py4KSkXnLSgC'
-RAZORPAY_KEY_SECRET = 'I4eHRaAOY8fnVaMH5lCXqMxP'
+RAZORPAY_KEY_ID = config('RAZORPAY_KEY_ID')
+RAZORPAY_KEY_SECRET = config('RAZORPAY_KEY_SECRET')
