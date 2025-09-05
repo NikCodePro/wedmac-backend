@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from .models import Ticket
 from .serializers import TicketCreateSerializer, TicketSerializer, TicketUpdateSerializer
+from django.db.models import Count, Avg, F, ExpressionWrapper, DurationField
 from rest_framework.permissions import IsAuthenticated
 from superadmin_auth.permissions import IsSuperAdmin
 
@@ -93,3 +94,53 @@ def artist_tickets_summary(request):
     }
     
     return Response(summary)
+
+class AdminDashboardStatsView(generics.GenericAPIView):
+    permission_classes = [IsSuperAdmin]
+
+    def get(self, request):
+        total_tickets = Ticket.objects.count()
+        open_tickets = Ticket.objects.filter(status='open').count()
+        in_progress_tickets = Ticket.objects.filter(status='in_progress').count()
+        resolved_tickets = Ticket.objects.filter(status='resolved').count()
+        closed_tickets = Ticket.objects.filter(status='closed').count()
+
+        # Calculate average response time (time between created_at and first admin_response)
+        # For simplicity, assuming admin_response is set when response is made
+        tickets_with_response = Ticket.objects.exclude(admin_response__isnull=True).exclude(admin_response__exact='')
+        avg_response_time = tickets_with_response.annotate(
+            response_time=ExpressionWrapper(
+                F('updated_at') - F('created_at'),
+                output_field=DurationField()
+            )
+        ).aggregate(avg_response=Avg('response_time'))['avg_response']
+
+        # Calculate average resolution time (time between created_at and resolved_at)
+        tickets_with_resolution = Ticket.objects.filter(resolved_at__isnull=False)
+        avg_resolution_time = tickets_with_resolution.annotate(
+            resolution_time=ExpressionWrapper(
+                F('resolved_at') - F('created_at'),
+                output_field=DurationField()
+            )
+        ).aggregate(avg_resolution=Avg('resolution_time'))['avg_resolution']
+
+        # Convert durations to hours float
+        def duration_to_hours(duration):
+            if duration is None:
+                return None
+            return duration.total_seconds() / 3600
+
+        data = {
+            "overview": {
+                "total_tickets": total_tickets,
+                "open_tickets": open_tickets,
+                "in_progress_tickets": in_progress_tickets,
+                "resolved_tickets": resolved_tickets,
+                "closed_tickets": closed_tickets,
+            },
+            "performance_metrics": {
+                "average_response_time_hours": duration_to_hours(avg_response_time),
+                "average_resolution_time_hours": duration_to_hours(avg_resolution_time),
+            }
+        }
+        return Response(data)
