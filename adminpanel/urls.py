@@ -5,6 +5,7 @@ from adminpanel.views.subscriptions_view import CreateSubscriptionPlanView, Subs
 from artists.view.admin_approve_artist import AdminApproveOrRejectArtistView, AdminChangePendingStatusView, AdminRejectArtistView, AdminSetArtistActiveView, AdminSetArtistInactiveView
 from artists.view.admin_artist_list import AdminArtistListView
 from adminpanel.views.create_master_data import CreateMasterDataAPIView, UpdateMasterDataAPIView, DeleteMasterDataAPIView
+from adminpanel.views.artist_leads_view import AdminUpdateArtistLeadsView
 
 
 urlpatterns = [
@@ -37,5 +38,8 @@ urlpatterns = [
          name='update-master-data'),
     path('master/delete/', DeleteMasterDataAPIView.as_view(),
          name='delete-master-data'),
+
+    # manage artist leads
+    path('artist/<int:artist_id>/leads/', AdminUpdateArtistLeadsView.as_view(), name='admin-update-artist-leads'),
 
 ]
