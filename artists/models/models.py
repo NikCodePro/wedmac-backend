@@ -87,6 +87,9 @@ class ArtistProfile(models.Model):
     my_claimed_leads = models.IntegerField(default=0)
     total_bookings = models.IntegerField(default=0)
 
+    # new: flag to identify if artist was created by admin
+    created_by_admin = models.BooleanField(default=False)
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

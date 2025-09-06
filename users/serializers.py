@@ -45,6 +45,8 @@ class AdminArtistSerializer(serializers.Serializer):
     pincode = serializers.CharField(max_length=10, required=False, allow_blank=True)
     lat = serializers.FloatField(required=False)
     lng = serializers.FloatField(required=False)
+    available_leads = serializers.IntegerField(default=6)
+    created_by_admin = serializers.BooleanField(default=True)
 
     def validate_phone(self, value):
         if User.objects.filter(phone=value).exists():

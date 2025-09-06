@@ -269,7 +269,9 @@ class AdminCreateArtistView(APIView):
                 gender=user.gender,
                 location=location_obj,
                 status='approved',
-                total_bookings=0
+                total_bookings=0,
+                available_leads=data.get('available_leads', 0),  # Use value from payload or default to 0
+                created_by_admin=True  # Flag to identify admin created artists
             )
 
         # Generate JWT tokens like normal registration
