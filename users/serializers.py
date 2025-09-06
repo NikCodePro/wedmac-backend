@@ -42,7 +42,7 @@ class AdminArtistSerializer(serializers.Serializer):
     gender = serializers.CharField(max_length=10, required=False, allow_blank=True)
     city = serializers.CharField(max_length=100)
     state = serializers.CharField(max_length=100)
-    pincode = serializers.CharField(max_length=10, required=False, allow_blank=True,null=True)
+    pincode = serializers.CharField(max_length=10, required=False, allow_blank=True, allow_null=True)
     lat = serializers.FloatField(required=False)
     lng = serializers.FloatField(required=False)
     available_leads = serializers.IntegerField(default=6)
