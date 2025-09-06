@@ -284,7 +284,7 @@ class AdminCreateArtistView(APIView):
             'refresh': str(refresh),
             'user_id': user.id,
             'role': user.role,
-            "created_by_admin": user.created_by_admin,
+            # "created_by_admin": user.created_by_admin,
         }, status=status.HTTP_201_CREATED)
 
 
