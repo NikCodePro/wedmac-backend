@@ -117,6 +117,7 @@ def get_blog_by_id(request, project_id):
     photos = [photo.image.url for photo in blog.photos.all()] # Fetch photo URLs
     comments = [
         {
+            "id": comment.id,
             "name": comment.name,
             "phone_number": comment.phone_number,
             "location": comment.location,
