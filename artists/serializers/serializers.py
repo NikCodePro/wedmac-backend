@@ -179,6 +179,7 @@ class AdminArtistProfileSerializer(serializers.ModelSerializer):
             "is_active",
             # new
             "my_claimed_leads",
+            "tag",  # Added tag field
         ]
 
     def get_profile_picture(self, obj):

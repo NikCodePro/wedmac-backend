@@ -4,6 +4,7 @@ from artists.view.admin_approve_artist import (
     AdminDeleteArtistView  # Add this import
 )
 from artists.view.admin_artist_list import AdminArtistListView
+from artists.view.admin_artist_tag import AdminArtistTagView, AdminArtistTagListView
 from artists.view.complete_artist_profile import CompleteArtistProfileView
 from artists.view.get_artist_profile import GetArtistProfileView
 from artists.view.payment_history_view import ArtistPaymentHistoryView
@@ -36,6 +37,9 @@ urlpatterns = [
     path('referral-code/', get_referral_code, name='get-referral-code'),
    # delete artist by admin
     path('admin/<int:artist_id>/delete-artist/', AdminDeleteArtistView.as_view(), name='admin-delete-artist'),
+    # Artist tag management
+    path('admin/<int:artist_id>/tag/', AdminArtistTagView.as_view(), name='admin-artist-tag'),
+    path('admin/tags/', AdminArtistTagListView.as_view(), name='admin-artist-tags'),
     # path('services/', ArtistServiceManageView.as_view(), name='artist-services'),
 ]
 

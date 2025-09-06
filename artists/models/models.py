@@ -49,6 +49,7 @@ class ArtistProfile(models.Model):
         blank=True,
         null=True
     )
+    tag = models.CharField(max_length=255, blank=True, null=True)  # New field for artist tag
     # Document References (latest active only)
     profile_picture = models.ForeignKey(
         Document, on_delete=models.SET_NULL, null=True, blank=True, related_name='artist_profile_picture'
