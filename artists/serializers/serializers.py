@@ -107,6 +107,7 @@ class ArtistProfileSerializer(serializers.ModelSerializer):
             'my_referral_code',
             # new: expose claimed leads count
             'my_claimed_leads',
+            "created_by_admin",
         ]
 
 
