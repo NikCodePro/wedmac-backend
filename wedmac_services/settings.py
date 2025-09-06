@@ -52,7 +52,6 @@ INSTALLED_APPS = [
     'artists',
     'users',
     'leads',
-    'grievances',
     'adminpanel',
     'notifications',        
     'documents',  
