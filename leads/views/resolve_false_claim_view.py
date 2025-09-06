@@ -7,9 +7,10 @@ from users.permissions import IsAdminRole
 from django.utils import timezone
 from notifications.services import NotificationService
 from django.db import transaction
+from superadmin_auth.permissions import IsSuperAdmin
 
 class ResolveFalseClaimView(APIView):
-    permission_classes = [IsAuthenticated, IsAdminRole]
+    permission_classes = [IsSuperAdmin]
 
     def patch(self, request, pk):
         with transaction.atomic():
