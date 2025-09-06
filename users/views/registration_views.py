@@ -314,6 +314,7 @@ class AdminLoginAsArtistView(APIView):
                 'refresh': str(refresh),
                 'user_id': user.id,
                 'role': user.role,
+                'created_by_admin': user.created_by_admin,
             })
 
         except User.DoesNotExist:
