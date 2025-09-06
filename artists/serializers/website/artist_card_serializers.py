@@ -52,6 +52,7 @@ class ArtistCardSerializer(serializers.ModelSerializer):
             'makeup_types',
             'portfolio_photos',
             'price_range',
+            'tag',
         ]
 
     def get_full_name(self, obj):
