@@ -8,6 +8,7 @@ from django.conf import settings
 from leads.utils.distribution import assign_lead_automatically
 from notifications.services import NotificationService
 from users.models import User  # Adjust path if needed
+from adminpanel.models import MakeupType
 
 
 

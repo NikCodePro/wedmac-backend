@@ -32,9 +32,73 @@ class NestedLocationSerializer(serializers.ModelSerializer):
         fields = ['id', 'city', 'state', 'pincode']
 
 
+class MakeupTypeNameField(serializers.Field):
+    """
+    Custom field to handle makeup_types as names during input,
+    but convert to MakeupType instances for storage.
+    """
+
+    def to_internal_value(self, data):
+        if not isinstance(data, list):
+            raise serializers.ValidationError("Makeup types must be a list of names or IDs.")
+
+        makeup_type_instances = []
+        for name in data:
+            # Accept both string names and integer IDs
+            if isinstance(name, int):
+                try:
+                    makeup_type = MakeupType.objects.get(id=name)
+                    makeup_type_instances.append(makeup_type)
+                except MakeupType.DoesNotExist:
+                    raise serializers.ValidationError(f"Makeup type with ID '{name}' does not exist.")
+            elif isinstance(name, str):
+                try:
+                    makeup_type = MakeupType.objects.get(name__iexact=name.strip())
+                    makeup_type_instances.append(makeup_type)
+                except MakeupType.DoesNotExist:
+                    raise serializers.ValidationError(f"Makeup type '{name}' does not exist.")
+            else:
+                raise serializers.ValidationError(f"Makeup type name must be a string or int, got {type(name)}: {name}")
+
+        return makeup_type_instances
+
+    def to_representation(self, value):
+        # This will be handled by the NestedMakeupTypeSerializer in to_representation
+        return value
+
+
+class BudgetRangeValueField(serializers.Field):
+    """
+    Custom field to handle budget_range as integer value during input,
+    but convert to BudgetRange instance for storage.
+    """
+
+    def to_internal_value(self, data):
+        if not isinstance(data, int):
+            raise serializers.ValidationError("Budget range must be an integer value.")
+
+        try:
+            # Find BudgetRange where min_value <= data <= max_value
+            budget_range = BudgetRange.objects.filter(
+                min_value__lte=data,
+                max_value__gte=data
+            ).first()
+
+            if not budget_range:
+                raise serializers.ValidationError(f"No budget range found for value {data}.")
+
+            return budget_range
+        except BudgetRange.DoesNotExist:
+            raise serializers.ValidationError(f"No budget range found for value {data}.")
+
+    def to_representation(self, value):
+        # This will be handled by the NestedBudgetRangeSerializer in to_representation
+        return value
+
+
 class LeadSerializer(serializers.ModelSerializer):
-    makeup_types = NestedMakeupTypeSerializer(many=True, read_only=True)
-    budget_range = serializers.PrimaryKeyRelatedField(queryset=BudgetRange.objects.all(), required=False)
+    makeup_types = MakeupTypeNameField(required=False)
+    budget_range = BudgetRangeValueField(required=False)
     service = serializers.PrimaryKeyRelatedField(queryset=Service.objects.all(), required=False)
     location = serializers.CharField(required=False)
     claimed_artists = NestedArtistProfileSerializer(read_only=True, many=True)
@@ -61,6 +125,13 @@ class LeadSerializer(serializers.ModelSerializer):
             data['assigned_to'] = NestedArtistProfileSerializer(instance.assigned_to).data
         if instance.requested_artist:
             data['requested_artist'] = NestedArtistProfileSerializer(instance.requested_artist).data
+
+        # Handle makeup_types - convert to nested serializer format for response
+        if hasattr(instance, 'makeup_types') and instance.makeup_types.exists():
+            data['makeup_types'] = NestedMakeupTypeSerializer(instance.makeup_types.all(), many=True).data
+        else:
+            data['makeup_types'] = []
+
         return data
 
     def get_claimed_count(self, obj):
@@ -68,6 +139,16 @@ class LeadSerializer(serializers.ModelSerializer):
 
     def get_booked_count(self, obj):
         return obj.booked_artists.count()
+
+    def create(self, validated_data):
+        makeup_types = validated_data.pop('makeup_types', [])
+        lead = super().create(validated_data)
+
+        # Add makeup types to the lead
+        if makeup_types:
+            lead.makeup_types.set(makeup_types)
+
+        return lead
 
 # this serializer is used for the recent leads list for artist dashboard
 class LeadDashboardListSerializer(serializers.ModelSerializer):
