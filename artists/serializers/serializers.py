@@ -4,6 +4,7 @@ from documents.models import Document
 from adminpanel.models import MakeupType, Product, PaymentMethod, SubscriptionPlan
 from artists.models.models import Location
 from adminpanel.models import Service
+from artist_services.models import Service as ArtistService
 import base64
 
 
@@ -68,6 +69,7 @@ class ArtistProfileSerializer(serializers.ModelSerializer):
     products_used_data = ProductSerializer(source='products_used', many=True, read_only=True)
     payment_methods_data = PaymentMethodSerializer(source='payment_methods', many=True, read_only=True)
     social_links_data = SocialLinkSerializer(source='social_links', many=True, read_only=True)
+    services_offered = serializers.SerializerMethodField()
 
     location = LocationSerializer(read_only=True)
     current_plan = SubscriptionPlanSerializer(read_only=True)
@@ -103,7 +105,7 @@ class ArtistProfileSerializer(serializers.ModelSerializer):
             'referel_code', 'offer_chosen', 'bio',
             'type_of_makeup', 'products_used', 'products_used_data',
             'payment_methods', 'payment_methods_data',
-            'price_range', 'experience_years', 'services', 'travel_charges',
+            'price_range', 'experience_years', 'services', 'services_offered', 'travel_charges',
             'travel_policy', 'trial_available', 'trial_paid_type', 'location',
             'social_links', 'social_links_data',
             'profile_picture', 'certifications', 'id_documents', 'supporting_images',
@@ -132,6 +134,18 @@ class ArtistProfileSerializer(serializers.ModelSerializer):
 
     def get_certifications_data(self, obj):
         return DocumentSerializer(obj.certifications.filter(is_active=True), many=True).data
+
+    def get_services_offered(self, obj):
+        """Return service data from artist_services table"""
+        services = obj.services_offered.filter(is_active=True)
+        return [{
+            'id': service.id,
+            'name': service.name,
+            'description': service.description,
+            'price': str(service.price),
+            'created_at': service.created_at,
+            'updated_at': service.updated_at
+        } for service in services]
 
     def validate_supporting_images(self, value):
         if len(value) > 8:

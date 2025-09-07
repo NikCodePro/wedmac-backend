@@ -3,6 +3,7 @@
 from rest_framework import serializers
 from artists.models.models import ArtistProfile, SocialLink
 from documents.models import Document
+from artist_services.models import Service
 from .payment_method_serializer import PaymentMethodSerializer
 
 
@@ -24,6 +25,7 @@ class ArtistPublicDetailSerializer(serializers.ModelSerializer):
     products_used = serializers.SerializerMethodField()
     profile_photo_url = serializers.SerializerMethodField()
     portfolio_photos = serializers.SerializerMethodField()
+    services = serializers.SerializerMethodField()
     certifications = DocumentURLSerializer(many=True)
     social_links = SocialLinkSerializer(many=True, read_only=True)
     payment_methods = PaymentMethodSerializer(many=True, read_only=True)
@@ -77,3 +79,15 @@ class ArtistPublicDetailSerializer(serializers.ModelSerializer):
 
     def get_portfolio_photos(self, obj):
         return [doc.file_url for doc in obj.supporting_images.all()]
+
+    def get_services(self, obj):
+        """Return service data from artist_services table"""
+        services = obj.services_offered.filter(is_active=True)
+        return [{
+            'id': service.id,
+            'name': service.name,
+            'description': service.description,
+            'price': str(service.price),
+            'created_at': service.created_at,
+            'updated_at': service.updated_at
+        } for service in services]
