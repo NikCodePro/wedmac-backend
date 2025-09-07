@@ -18,6 +18,8 @@ from users.views.utils import is_master_otp
 from users.serializers import AdminArtistSerializer
 # from users.permissions import IsAdminRole
 from superadmin_auth.permissions import IsSuperAdmin
+from adminpanel.models import SubscriptionPlan
+from django.utils import timezone
 DUMMY_OTP = '123456'  #Simulated OTP for now
 
 class RequestOTPView(APIView):
@@ -245,6 +247,14 @@ class AdminCreateArtistView(APIView):
             }
         )
 
+        # Get subscription plan if provided
+        subscription_plan = None
+        if data.get('subscription_plan_id'):
+            try:
+                subscription_plan = SubscriptionPlan.objects.get(id=data['subscription_plan_id'])
+            except SubscriptionPlan.DoesNotExist:
+                return Response({'error': 'Invalid subscription plan ID.'}, status=400)
+
         # Use transaction to ensure both User and ArtistProfile are created together
         with transaction.atomic():
             # Create User
@@ -261,20 +271,31 @@ class AdminCreateArtistView(APIView):
                 is_artist_approved=True
             )
 
+            # Prepare ArtistProfile data
+            artist_profile_data = {
+                'user': user,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'phone': user.phone,
+                'email': user.email,
+                'gender': user.gender,
+                'location': location_obj,
+                'status': 'approved',
+                'total_bookings': 0,
+                'available_leads': data.get('available_leads', 0),
+                'created_by_admin': True
+            }
+
+            # Add subscription plan data if provided
+            if subscription_plan:
+                artist_profile_data.update({
+                    'current_plan': subscription_plan,
+                    'plan_purchase_date': timezone.now(),
+                    'plan_verified': True
+                })
+
             # Create ArtistProfile
-            ArtistProfile.objects.create(
-                user=user,
-                first_name=user.first_name,
-                last_name=user.last_name,
-                phone=user.phone,
-                email=user.email,
-                gender=user.gender,
-                location=location_obj,
-                status='approved',
-                total_bookings=0,
-                available_leads=data.get('available_leads', 0),  # Use value from payload or default to 0
-                created_by_admin=True  # Flag to identify admin created artists
-            )
+            ArtistProfile.objects.create(**artist_profile_data)
 
         # Generate JWT tokens like normal registration
         refresh = RefreshToken.for_user(user)

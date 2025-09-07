@@ -2,6 +2,7 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import User
 from artists.models.models import Location
+from adminpanel.models import SubscriptionPlan
 
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
@@ -47,8 +48,17 @@ class AdminArtistSerializer(serializers.Serializer):
     lng = serializers.FloatField(required=False)
     available_leads = serializers.IntegerField(default=6)
     created_by_admin = serializers.BooleanField(default=True)
+    subscription_plan_id = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
     def validate_phone(self, value):
         if User.objects.filter(phone=value).exists():
             raise serializers.ValidationError("Phone number already exists.")
+        return value
+
+    def validate_subscription_plan_id(self, value):
+        if value:
+            try:
+                SubscriptionPlan.objects.get(id=value)
+            except SubscriptionPlan.DoesNotExist:
+                raise serializers.ValidationError("Invalid subscription plan ID.")
         return value
