@@ -38,7 +38,6 @@ urlpatterns = [
          name='update-master-data'),
     path('master/delete/', DeleteMasterDataAPIView.as_view(),
          name='delete-master-data'),
-
     # manage artist leads
     path('artist/<int:artist_id>/leads/', AdminUpdateArtistLeadsView.as_view(), name='admin-update-artist-leads'),
 
