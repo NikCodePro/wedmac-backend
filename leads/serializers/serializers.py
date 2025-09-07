@@ -39,8 +39,8 @@ class LeadSerializer(serializers.ModelSerializer):
     location = serializers.CharField(required=False)
     claimed_artists = NestedArtistProfileSerializer(read_only=True, many=True)
     booked_artists = NestedArtistProfileSerializer(read_only=True, many=True)
-    assigned_to = NestedArtistProfileSerializer(read_only=True)
-    requested_artist = NestedArtistProfileSerializer(read_only=True)
+    assigned_to = serializers.PrimaryKeyRelatedField(queryset=ArtistProfile.objects.all(), required=False, allow_null=True)
+    requested_artist = serializers.PrimaryKeyRelatedField(queryset=ArtistProfile.objects.all(), required=False, allow_null=True)
     claimed_count = serializers.SerializerMethodField()
     booked_count = serializers.SerializerMethodField()
     max_claims = serializers.IntegerField(required=False)
@@ -57,6 +57,10 @@ class LeadSerializer(serializers.ModelSerializer):
             data['service'] = NestedServiceSerializer(instance.service).data
         if instance.budget_range:
             data['budget_range'] = NestedBudgetRangeSerializer(instance.budget_range).data
+        if instance.assigned_to:
+            data['assigned_to'] = NestedArtistProfileSerializer(instance.assigned_to).data
+        if instance.requested_artist:
+            data['requested_artist'] = NestedArtistProfileSerializer(instance.requested_artist).data
         return data
 
     def get_claimed_count(self, obj):
