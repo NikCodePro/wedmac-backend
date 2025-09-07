@@ -179,7 +179,12 @@ class VerifyPaymentView(APIView):
             artist = ArtistProfile.objects.get(id=subscription.artist.id)
             # set to the value used by ArtistProfile.payment_status field (here 'approved')
             artist.payment_status = 'approved'
-            
+
+            # Update the new plan-related fields when payment is verified
+            artist.current_plan = subscription.plan
+            artist.plan_purchase_date = now
+            artist.plan_verified = True
+
             # Add plan leads to artist available leads (handle both possible field names)
             try:
                 leads_to_add = int(subscription.plan.total_leads or 0)

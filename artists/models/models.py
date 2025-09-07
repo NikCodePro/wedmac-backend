@@ -90,6 +90,11 @@ class ArtistProfile(models.Model):
     # new: flag to identify if artist was created by admin
     created_by_admin = models.BooleanField(default=False)
 
+    # new: current purchased plan information
+    current_plan = models.ForeignKey('adminpanel.SubscriptionPlan', on_delete=models.SET_NULL, null=True, blank=True, related_name='current_artist_profiles')
+    plan_purchase_date = models.DateTimeField(null=True, blank=True)
+    plan_verified = models.BooleanField(default=False)
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
