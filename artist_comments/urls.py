@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import send_otp_for_comment, add_comment_and_rating, get_artist_comments, update_comment_and_rating, delete_comment_and_rating
+from .views import send_otp_for_comment, add_comment_and_rating, get_artist_comments, update_comment_and_rating, delete_comment_and_rating, get_comments_admin, get_comments_by_artist_admin, update_comment_admin, delete_comment_admin
 
 urlpatterns = [
     path('send-otp/', send_otp_for_comment, name='send_otp_for_comment'),
@@ -11,4 +11,10 @@ urlpatterns = [
          update_comment_and_rating, name='update_comment_and_rating'),
     path('delete-comment-rating/<int:artist_id>/<int:comment_id>/',
          delete_comment_and_rating, name='delete_comment_and_rating'),
+
+    # Admin Comment Management Endpoints
+    path('admin/comments/', get_comments_admin, name='get_comments_admin'),
+    path('admin/comments/<int:artist_id>/', get_comments_by_artist_admin, name='get_comments_by_artist_admin'),
+    path('admin/update-comment/<int:comment_id>/', update_comment_admin, name='update_comment_admin'),
+    path('admin/delete-comment/<int:comment_id>/', delete_comment_admin, name='delete_comment_admin'),
 ]
