@@ -1,8 +1,8 @@
 from rest_framework import serializers
 from artists.models.models import ArtistProfile, ArtistSubscription, SocialLink
 from documents.models import Document
-from adminpanel.models import MakeupType, Product, PaymentMethod
-from artists.models.models import Location 
+from adminpanel.models import MakeupType, Product, PaymentMethod, SubscriptionPlan
+from artists.models.models import Location
 from adminpanel.models import Service
 import base64
 
@@ -55,6 +55,11 @@ class PaymentMethodSerializer(serializers.ModelSerializer):
         model = PaymentMethod
         fields = ['id', 'name', 'description']  # Adjust based on model fields
 
+class SubscriptionPlanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SubscriptionPlan
+        fields = ['id', 'name', 'description', 'price', 'total_leads', 'duration_days']
+
 
 # Main ArtistProfile Serializer
 class ArtistProfileSerializer(serializers.ModelSerializer):
@@ -63,6 +68,7 @@ class ArtistProfileSerializer(serializers.ModelSerializer):
     products_used_data = ProductSerializer(source='products_used', many=True, read_only=True)
     payment_methods_data = PaymentMethodSerializer(source='payment_methods', many=True, read_only=True)
     social_links_data = SocialLinkSerializer(source='social_links', many=True, read_only=True)
+    current_purchase_plan_data = SubscriptionPlanSerializer(source='current_purchase_plan', read_only=True)
 
     location = LocationSerializer(read_only=True)
 
@@ -108,6 +114,8 @@ class ArtistProfileSerializer(serializers.ModelSerializer):
             # new: expose claimed leads count
             'my_claimed_leads',
             "created_by_admin",
+            # new: current purchase plan data
+            'current_purchase_plan_data',
         ]
 
 
@@ -153,6 +161,7 @@ class AdminArtistProfileSerializer(serializers.ModelSerializer):
     location = serializers.StringRelatedField()
     profile_picture = serializers.SerializerMethodField()
     certifications = serializers.SerializerMethodField()
+    current_purchase_plan_data = SubscriptionPlanSerializer(source='current_purchase_plan', read_only=True)
 
     class Meta:
         model = ArtistProfile
@@ -181,6 +190,8 @@ class AdminArtistProfileSerializer(serializers.ModelSerializer):
             # new
             "my_claimed_leads",
             "tag",  # Added tag field
+            # new: current purchase plan data
+            "current_purchase_plan_data",
         ]
 
     def get_profile_picture(self, obj):

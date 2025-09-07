@@ -9,7 +9,7 @@ from leads.serializers.serializers import LeadSerializer
 class UpdateLeadView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def put(self, request, lead_id):
+    def patch(self, request, lead_id):
         try:
             lead = Lead.objects.get(id=lead_id)
         except Lead.DoesNotExist:
