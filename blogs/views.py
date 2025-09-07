@@ -248,8 +248,93 @@ def delete_comment(request, project_id, comment_id):
             return Response({"error": "Unauthorized: Phone number does not match commenter."}, status=403)
 
         comment.delete()
-        
+
         return Response({"message": "Comment deleted successfully."}, status=200)
-    
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=400)
+
+# Admin APIs for comment management
+@api_view(['GET'])
+@permission_classes([IsSuperAdmin])
+def get_comments_admin(request):
+    """
+    Get all comments for admin, optionally filter by blog_id
+    """
+    blog_id = request.GET.get('blog_id')
+    if blog_id:
+        comments = Comment.objects.filter(blog_id=blog_id)
+    else:
+        comments = Comment.objects.all()
+
+    data = [
+        {
+            "id": comment.id,
+            "blog_id": comment.blog.id,
+            "blog_title": comment.blog.title,
+            "name": comment.name,
+            "phone_number": comment.phone_number,
+            "location": comment.location,
+            "comment": comment.comment,
+            "created_at": comment.created_at.strftime("%Y-%m-%d %H:%M:%S")
+        } for comment in comments
+    ]
+    return Response(data, status=200)
+
+@api_view(['GET'])
+@permission_classes([IsSuperAdmin])
+def get_comments_by_blog_admin(request, project_id):
+    """
+    Get all comments for a specific blog by admin using project_id
+    """
+    comments = Comment.objects.filter(blog__project_id=project_id)
+
+    data = [
+        {
+            "id": comment.id,
+            "project_id": comment.blog.project_id,
+            "blog_title": comment.blog.title,
+            "name": comment.name,
+            "phone_number": comment.phone_number,
+            "location": comment.location,
+            "comment": comment.comment,
+            "created_at": comment.created_at.strftime("%Y-%m-%d %H:%M:%S")
+        } for comment in comments
+    ]
+    return Response(data, status=200)
+
+@api_view(['PUT'])
+@permission_classes([IsSuperAdmin])
+def update_comment_admin(request, comment_id):
+    """
+    Update any comment by admin
+    """
+    try:
+        comment = get_object_or_404(Comment, id=comment_id)
+        data = request.data
+
+        comment.name = data.get('name', comment.name)
+        comment.phone_number = data.get('phone_number', comment.phone_number)
+        comment.location = data.get('location', comment.location)
+        comment.comment = data.get('comment', comment.comment)
+        comment.save()
+
+        return Response({"message": "Comment updated successfully."}, status=200)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=400)
+
+@api_view(['DELETE'])
+@permission_classes([IsSuperAdmin])
+def delete_comment_admin(request, comment_id):
+    """
+    Delete any comment by admin
+    """
+    try:
+        comment = get_object_or_404(Comment, id=comment_id)
+        comment.delete()
+
+        return Response({"message": "Comment deleted successfully."}, status=200)
+
     except Exception as e:
         return Response({"error": str(e)}, status=400)

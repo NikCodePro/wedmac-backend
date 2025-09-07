@@ -1,6 +1,6 @@
 #urls.py
 from django.urls import path
-from .views import create_blog, edit_blog, delete_blog, get_blogs, get_blog_by_id, send_otp_for_comment, add_comment, update_comment, delete_comment
+from .views import create_blog, edit_blog, delete_blog, get_blogs, get_blog_by_id, send_otp_for_comment, add_comment, update_comment, delete_comment, get_comments_admin, get_comments_by_blog_admin, update_comment_admin, delete_comment_admin
 
 
 urlpatterns = [
@@ -16,4 +16,10 @@ urlpatterns = [
     path('add-comment/<int:project_id>/', add_comment, name='add_comment'),
     path('update-comment/<int:project_id>/<int:comment_id>/', update_comment, name='update_comment'),
     path('delete-comment/<int:project_id>/<int:comment_id>/', delete_comment, name='delete_comment'),
+
+    # Admin Comment Management Endpoints
+    path('admin/comments/', get_comments_admin, name='get_comments_admin'),
+    path('admin/comments/<int:project_id>/', get_comments_by_blog_admin, name='get_comments_by_blog_admin'),
+    path('admin/update-comment/<int:comment_id>/', update_comment_admin, name='update_comment_admin'),
+    path('admin/delete-comment/<int:comment_id>/', delete_comment_admin, name='delete_comment_admin'),
 ]
