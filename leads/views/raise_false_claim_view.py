@@ -22,10 +22,12 @@ class RaiseFalseLeadClaimView(APIView):
 
         serializer = FalseLeadClaimSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(artist=artist)
+            claim = serializer.save(artist=artist)
+            # Re-serialize to include proof_documents details
+            response_serializer = FalseLeadClaimSerializer(claim)
             return Response({
                 "message": "False lead claim raised successfully.",
-                "claim": serializer.data
+                "claim": response_serializer.data
             }, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

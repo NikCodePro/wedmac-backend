@@ -1,22 +1,21 @@
 from rest_framework import serializers
 from documents.models import Document
-from leads.models.false_lead_claim import FalseLeadClaim
+from leads.models.false_lead_claim import FalseLeadClaim, FalseClaimDocument
 
-class DocumentSerializer(serializers.ModelSerializer):
+class FalseClaimDocumentSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Document
+        model = FalseClaimDocument
         fields = ['id', 'file_name', 'file_type', 'file_url', 'tag', 'created_at']
 
 class FalseLeadClaimSerializer(serializers.ModelSerializer):
-    # Write: accept list of doc IDs
-    proof_documents_ids = serializers.PrimaryKeyRelatedField(
-        queryset=Document.objects.all(),
-        many=True,
+    # Write: accept list of document data
+    proof_documents_data = serializers.ListField(
+        child=serializers.DictField(),
         write_only=True,
         required=False
     )
 
-    # Read: show document details (only active)
+    # Read: show document details from FalseClaimDocument
     proof_documents = serializers.SerializerMethodField()
 
     lead_id = serializers.IntegerField(source='lead.id', read_only=True)
@@ -29,17 +28,26 @@ class FalseLeadClaimSerializer(serializers.ModelSerializer):
         model = FalseLeadClaim
         fields = [
             'id', 'lead', 'lead_id','lead_first_name', 'lead_last_name','lead_email', 'lead_phone',
-            'reason', 'proof_documents_ids', 'proof_documents',
+            'reason', 'proof_documents_data', 'proof_documents',
             'status', 'admin_note', 'created_at'
         ]
         read_only_fields = ['status', 'admin_note', 'created_at', 'proof_documents']
 
     def get_proof_documents(self, obj):
-        active_docs = obj.proof_documents.filter(is_active=True)
-        return DocumentSerializer(active_docs, many=True).data
+        """Return documents from FalseClaimDocument model"""
+        documents = obj.documents.all()
+        return FalseClaimDocumentSerializer(documents, many=True).data
 
     def create(self, validated_data):
-        documents = validated_data.pop('proof_documents_ids', [])
+        documents_data = validated_data.pop('proof_documents_data', [])
         claim = FalseLeadClaim.objects.create(**validated_data)
-        claim.proof_documents.set(documents)
+
+        # Create FalseClaimDocument entries
+        for doc_data in documents_data:
+            FalseClaimDocument.objects.create(
+                false_claim=claim,
+                lead=claim.lead,
+                **doc_data
+            )
+
         return claim

@@ -30,3 +30,36 @@ class FalseLeadClaim(models.Model):
 
     def __str__(self):
         return f"False Claim by {self.artist} on Lead #{self.lead.id} [{self.status}]"
+
+
+class FalseClaimDocument(models.Model):
+    """
+    Dedicated model for false claim documents
+    """
+    false_claim = models.ForeignKey(FalseLeadClaim, on_delete=models.CASCADE, related_name='documents')
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='false_claim_documents')
+
+    # File details
+    file_name = models.CharField(max_length=255)
+    file_type = models.CharField(max_length=10, choices=[
+        ('image', 'Image'),
+        ('pdf', 'PDF'),
+        ('doc', 'DOC'),
+        ('aadhar', 'Aadhar Card'),
+        ('pan', 'PAN Card'),
+        ('dl', 'Driving License'),
+        ('other', 'Other'),
+    ], default='image')
+
+    # Cloudinary file URL
+    file_url = models.URLField(max_length=1000, null=True, blank=True)
+    public_id = models.CharField(max_length=255, null=True, blank=True)
+
+    # Tag to describe the purpose
+    tag = models.CharField(max_length=50, blank=True)
+
+    # Upload timestamp
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Document for Claim #{self.false_claim.id}: {self.file_name}"
