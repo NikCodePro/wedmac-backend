@@ -18,7 +18,7 @@ class ArtistRecentLeadsView(APIView):
 
         # Get leads assigned to this artist, with specific status
         leads = Lead.objects.filter(
-            # assigned_to=artist_profile,
+            assigned_to=artist_profile,
             status__in=['new', 'claimed'],  # Changed from 'contacted' to 'claimed'
             is_deleted=False
         ).order_by('-created_at')

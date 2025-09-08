@@ -153,8 +153,8 @@ class LeadSerializer(serializers.ModelSerializer):
 # this serializer is used for the recent leads list for artist dashboard
 class LeadDashboardListSerializer(serializers.ModelSerializer):
     client_name = serializers.SerializerMethodField()
-    service = serializers.CharField(source='service.name', read_only=True, default='N/A')
-    location = serializers.CharField(source='location.city', read_only=True, default='N/A')
+    service = serializers.SerializerMethodField()
+    location = serializers.CharField(read_only=True)
     budget_range = serializers.SerializerMethodField()
 
     class Meta:
@@ -163,6 +163,11 @@ class LeadDashboardListSerializer(serializers.ModelSerializer):
 
     def get_client_name(self, obj):
         return f"{obj.first_name or ''} {obj.last_name or ''}".strip()
+
+    def get_service(self, obj):
+        if obj.service:
+            return obj.service.name
+        return 'N/A'
 
     def get_budget_range(self, obj):
         br = getattr(obj, 'budget_range', None)
