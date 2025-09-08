@@ -40,14 +40,23 @@ class FalseLeadClaimSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         documents_data = validated_data.pop('proof_documents_data', [])
+        print(f"DEBUG: Received documents_data: {documents_data}")  # Debug log
+        print(f"DEBUG: validated_data after pop: {validated_data}")  # Debug log
+
         claim = FalseLeadClaim.objects.create(**validated_data)
+        print(f"DEBUG: Created claim with ID: {claim.id}")  # Debug log
 
         # Create FalseClaimDocument entries
-        for doc_data in documents_data:
-            FalseClaimDocument.objects.create(
-                false_claim=claim,
-                lead=claim.lead,
-                **doc_data
-            )
+        for i, doc_data in enumerate(documents_data):
+            print(f"DEBUG: Processing document {i+1}: {doc_data}")  # Debug log
+            try:
+                document = FalseClaimDocument.objects.create(
+                    false_claim=claim,
+                    lead=claim.lead,
+                    **doc_data
+                )
+                print(f"DEBUG: Created document with ID: {document.id}")  # Debug log
+            except Exception as e:
+                print(f"DEBUG: Error creating document: {str(e)}")  # Debug log
 
         return claim
