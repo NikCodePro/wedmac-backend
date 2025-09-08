@@ -16,8 +16,8 @@ class FalseLeadClaimSerializer(serializers.ModelSerializer):
         required=False
     )
 
-    # Read: show document details
-    proof_documents = DocumentSerializer(many=True, read_only=True)
+    # Read: show document details (only active)
+    proof_documents = serializers.SerializerMethodField()
 
     lead_id = serializers.IntegerField(source='lead.id', read_only=True)
     lead_first_name = serializers.CharField(source='lead.first_name', read_only=True)
@@ -33,6 +33,10 @@ class FalseLeadClaimSerializer(serializers.ModelSerializer):
             'status', 'admin_note', 'created_at'
         ]
         read_only_fields = ['status', 'admin_note', 'created_at', 'proof_documents']
+
+    def get_proof_documents(self, obj):
+        active_docs = obj.proof_documents.filter(is_active=True)
+        return DocumentSerializer(active_docs, many=True).data
 
     def create(self, validated_data):
         documents = validated_data.pop('proof_documents_ids', [])
