@@ -20,7 +20,6 @@ from users.serializers import AdminArtistSerializer
 from superadmin_auth.permissions import IsSuperAdmin
 from adminpanel.models import SubscriptionPlan
 from django.utils import timezone
-DUMMY_OTP = '123456'  #Simulated OTP for now
 
 class RequestOTPView(APIView):
     permission_classes = [AllowAny]
@@ -117,13 +116,17 @@ class VerifyOTPView(APIView):
                 user.otp_verified = True
                 user.save()
                 refresh = RefreshToken.for_user(user)
+                try:
+                    created_by_admin = user.artist_profile.created_by_admin
+                except ArtistProfile.DoesNotExist:
+                    created_by_admin = False
                 return Response({
                     'message': 'Verification successful using master OTP.',
                     'access': str(refresh.access_token),
                     'refresh': str(refresh),
                     'user_id': user.id,
                     'role': user.role,
-                    'created_by_admin': user.created_by_admin,
+                    'created_by_admin': created_by_admin,
                 })
 
             # Continue with normal OTP verification
@@ -157,13 +160,17 @@ class VerifyOTPView(APIView):
                 # Assuming you have a notification service to handle this
                 self.send_notifications(user)
                 refresh = RefreshToken.for_user(user)
+                try:
+                    created_by_admin = user.artist_profile.created_by_admin
+                except ArtistProfile.DoesNotExist:
+                    created_by_admin = False
                 return Response({
                     'message': 'OTP verified successfully.',
                     'access': str(refresh.access_token),
                     'refresh': str(refresh),
                     'user_id': user.id,
                     'role': user.role,
-                    'created_by_admin': user.created_by_admin,
+                    'created_by_admin': created_by_admin,
                 })
 
         except OTPVerification.DoesNotExist:
@@ -329,13 +336,17 @@ class AdminLoginAsArtistView(APIView):
                 return Response({'error': 'Artist account is inactive.'}, status=400)
 
             refresh = RefreshToken.for_user(user)
+            try:
+                created_by_admin = user.artist_profile.created_by_admin
+            except ArtistProfile.DoesNotExist:
+                created_by_admin = False
             return Response({
                 'message': f'Successfully logged in as artist {user.first_name} {user.last_name}.',
                 'access': str(refresh.access_token),
                 'refresh': str(refresh),
                 'user_id': user.id,
                 'role': user.role,
-                'created_by_admin': user.created_by_admin,
+                'created_by_admin': created_by_admin,
             })
 
         except User.DoesNotExist:
