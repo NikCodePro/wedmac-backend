@@ -6,6 +6,7 @@ from leads.views.book_lead_view import BookLeadView
 from leads.views.get_artist_dashboard_recent_lead_view import ArtistRecentLeadsView
 from leads.views.get_lead_detail_view import LeadDetailView
 from leads.views.get_leads_view import GetLeadsByStatusView
+from leads.views.get_all_leads_view import GetAllLeadsView
 from leads.views.get_my_claimed_leads_view import GetMyClaimedLeadsView
 from leads.views.get_my_false_claims_view import GetMyFalseClaimsView
 from leads.views.list_false_claims_admin_view import ListFalseClaimsAdminView
@@ -24,6 +25,7 @@ urlpatterns = [
     path('admin/delete/<int:lead_id>/', AdminDeleteLeadView.as_view(), name='admin-delete-lead'),
     path('public/submit/', PublicLeadSubmissionView.as_view(), name='public-lead-submit'),
     path('list/', GetLeadsByStatusView.as_view(), name='get-leads-by-status'),
+    path('all-leads/', GetAllLeadsView.as_view(), name='get-all-leads'),
     path('<int:lead_id>/update/', UpdateLeadView.as_view(), name='update-lead'),
     path('status-count/', AdminLeadStatusCountView.as_view(), name='admin-lead-status-count'),
     path('lead-detail/<int:lead_id>/', LeadDetailView.as_view(), name='get-single-lead'),
