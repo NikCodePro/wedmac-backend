@@ -8,13 +8,6 @@ class FalseClaimDocumentSerializer(serializers.ModelSerializer):
         fields = ['id', 'file_name', 'file_type', 'file_url', 'tag', 'created_at']
 
 class FalseLeadClaimSerializer(serializers.ModelSerializer):
-    # Write: accept list of document data
-    proof_documents_data = serializers.ListField(
-        child=serializers.DictField(),
-        write_only=True,
-        required=False
-    )
-
     # Read: show document details from FalseClaimDocument
     proof_documents = serializers.SerializerMethodField()
 
@@ -28,7 +21,7 @@ class FalseLeadClaimSerializer(serializers.ModelSerializer):
         model = FalseLeadClaim
         fields = [
             'id', 'lead', 'lead_id','lead_first_name', 'lead_last_name','lead_email', 'lead_phone',
-            'reason', 'proof_documents_data', 'proof_documents',
+            'reason', 'proof_documents',
             'status', 'admin_note', 'created_at'
         ]
         read_only_fields = ['status', 'admin_note', 'created_at', 'proof_documents']
@@ -37,26 +30,3 @@ class FalseLeadClaimSerializer(serializers.ModelSerializer):
         """Return documents from FalseClaimDocument model"""
         documents = obj.documents.all()
         return FalseClaimDocumentSerializer(documents, many=True).data
-
-    def create(self, validated_data):
-        documents_data = validated_data.pop('proof_documents_data', [])
-        print(f"DEBUG: Received documents_data: {documents_data}")  # Debug log
-        print(f"DEBUG: validated_data after pop: {validated_data}")  # Debug log
-
-        claim = FalseLeadClaim.objects.create(**validated_data)
-        print(f"DEBUG: Created claim with ID: {claim.id}")  # Debug log
-
-        # Create FalseClaimDocument entries
-        for i, doc_data in enumerate(documents_data):
-            print(f"DEBUG: Processing document {i+1}: {doc_data}")  # Debug log
-            try:
-                document = FalseClaimDocument.objects.create(
-                    false_claim=claim,
-                    lead=claim.lead,
-                    **doc_data
-                )
-                print(f"DEBUG: Created document with ID: {document.id}")  # Debug log
-            except Exception as e:
-                print(f"DEBUG: Error creating document: {str(e)}")  # Debug log
-
-        return claim

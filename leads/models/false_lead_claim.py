@@ -14,14 +14,14 @@ class FalseLeadClaim(models.Model):
 
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='false_claims')
     artist = models.ForeignKey(ArtistProfile, on_delete=models.CASCADE, related_name='false_lead_claims')
-    
+
     reason = models.TextField()
-    
-    # Linked to your Document model (image/pdf proof, etc.)
-    proof_documents = models.ManyToManyField(Document, blank=True, related_name='false_lead_claims')
+
+    # Documents are now stored in FalseClaimDocument model (see below)
+    # No need for ManyToManyField to generic Document model
 
     status = models.CharField(max_length=10, choices=CLAIM_STATUS_CHOICES, default='pending')
-    
+
     admin_note = models.TextField(blank=True)
     resolved_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name='resolved_false_claims')
 
