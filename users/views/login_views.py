@@ -33,6 +33,14 @@ class RequestLoginOTPView(APIView):
             print(f"User OTP verified status: {user.otp_verified}")
             if not user.otp_verified:
                 return Response({"error": "User's OTP is not verified."}, status=403)
+            # Check if user is artist and active
+            if user.role == 'artist':
+                try:
+                    artist_profile = user.artist_profile
+                    if not artist_profile.is_active:
+                        return Response({"error": "User is inactive."}, status=403)
+                except ArtistProfile.DoesNotExist:
+                    return Response({"error": "Artist profile not found."}, status=404)
             # Generate OTP
             otp = str(random.randint(100000, 999999))
             # Save OTP in OTPVerification model
