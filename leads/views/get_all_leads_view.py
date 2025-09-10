@@ -3,6 +3,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from leads.models.models import Lead
 from leads.serializers.serializers import LeadSerializer
+from django.utils import timezone
+from datetime import timedelta
 
 class GetAllLeadsView(APIView):
     permission_classes = [IsAuthenticated]
@@ -11,6 +13,10 @@ class GetAllLeadsView(APIView):
         limit_param = request.query_params.get('limit', None)
 
         leads = Lead.objects.filter(is_deleted=False).order_by('-created_at')
+
+        # Filter out leads that are booked and leads older than 1 month
+        one_month_ago = timezone.now() - timedelta(days=30)
+        leads = leads.exclude(status='booked').filter(created_at__gte=one_month_ago)
 
         if limit_param:
             try:
