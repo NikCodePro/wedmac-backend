@@ -187,9 +187,17 @@ class GetMyAssignedLeadsView(APIView):
 
         leads = Lead.objects.filter(assigned_to=artist_profile, is_deleted=False).order_by('-created_at')
         serializer = LeadSerializer(leads, many=True)
+        leads_data = serializer.data
+
+        # Add booked_date for each lead if it's booked
+        for i, lead in enumerate(leads):
+            if lead.status == 'booked':
+                leads_data[i]['booked_date'] = lead.updated_at.date().isoformat()
+            else:
+                leads_data[i]['booked_date'] = None
 
         return Response({
             "message": "Assigned leads fetched successfully.",
             "count": leads.count(),
-            "leads": serializer.data
+            "leads": leads_data
         }, status=200)
