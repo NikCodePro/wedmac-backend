@@ -15,6 +15,7 @@ from artists.view.website.artist_detail_view import ArtistPublicDetailView
 from artists.view.refferal_code_view import generate_referral_code, get_referral_code
 from artists.view.artist_service_view import ArtistServiceManageView
 from artists.view.update_extended_days import UpdateExtendedDaysView
+from artists.view.admin_set_current_plan import AdminSetCurrentPlanView
 
 urlpatterns = [
     path('complete-profile/', CompleteArtistProfileView.as_view(), name='complete_profile'),
@@ -43,6 +44,8 @@ urlpatterns = [
     path('admin/tags/', AdminArtistTagListView.as_view(), name='admin-artist-tags'),
     # Update extended days
     path('admin/update-extended-days/', UpdateExtendedDaysView.as_view(), name='update-extended-days'),
+    # Admin set current plan
+    path('admin/<int:artist_id>/set-current-plan/', AdminSetCurrentPlanView.as_view(), name='admin-set-current-plan'),
     # path('services/', ArtistServiceManageView.as_view(), name='artist-services'),
 ]
 
