@@ -87,6 +87,9 @@ class ArtistProfile(models.Model):
     my_claimed_leads = models.IntegerField(default=0)
     total_bookings = models.IntegerField(default=0)
 
+    # new: extended days field
+    extended_days = models.IntegerField(default=0, blank=True, null=True)
+
     # new: flag to identify if artist was created by admin
     created_by_admin = models.BooleanField(default=False)
 

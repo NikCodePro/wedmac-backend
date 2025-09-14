@@ -118,6 +118,7 @@ class ArtistProfileSerializer(serializers.ModelSerializer):
             "created_by_admin",
             # new: current plan information
             'current_plan', 'plan_purchase_date', 'plan_verified',
+            'extended_days',
         ]
 
 
@@ -204,6 +205,7 @@ class AdminArtistProfileSerializer(serializers.ModelSerializer):
             "my_claimed_leads",
             "tag",  # Added tag field
             "current_plan", "plan_purchase_date", "plan_verified",
+            "extended_days",
         ]
 
     def get_profile_picture(self, obj):
