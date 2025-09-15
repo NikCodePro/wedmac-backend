@@ -66,14 +66,26 @@ class TwoFactorService:
                 return {"error": str(e)}
 
         elif self.mode == "call":
-            # Ensure phone starts with +91
-            if not self.phone.startswith("+91"):
-                phone = "+91" + self.phone
-            url = f"https://2factor.in/API/V1/{settings.TWOFACTOR_API_KEY}/SMS/{self.phone}/{self.otp}/{self.template_id}"
-            print(f"Calling {self.phone} with OTP {self.otp} using template {self.template_id}.")
+            # Phone should be in format 919999999999 (without +)
+            phone = self.phone.lstrip('+')
+            if phone.startswith('91'):
+                phone = phone
+            else:
+                phone = '91' + phone
+            url = f"https://2factor.in/API/V1/{settings.TWOFACTOR_API_KEY}/VOICE/{phone}/{self.otp}"
+            print(f"Calling {phone} with OTP {self.otp}.")
             try:
                 response = requests.get(url, timeout=10)
-                return response.json()
+                # 2Factor voice API may return plain text, not JSON
+                if response.headers.get('content-type', '').startswith('application/json'):
+                    return response.json()
+                else:
+                    # Assume success if no error in text
+                    text = response.text.strip()
+                    if 'error' in text.lower() or response.status_code != 200:
+                        return {"error": text or "Failed to send OTP via call"}
+                    else:
+                        return {"Status": "Success", "message": text}
             except requests.RequestException as e:
                 return {"error": str(e)}
         else:
