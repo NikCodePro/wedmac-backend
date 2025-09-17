@@ -12,11 +12,20 @@ class GetAllLeadsView(APIView):
     def get(self, request):
         limit_param = request.query_params.get('limit', None)
 
+        user = request.user
+        artist_profile = None
+        try:
+            artist_profile = user.artistprofile
+        except Exception:
+            pass
+
         leads = Lead.objects.filter(is_deleted=False).order_by('-created_at')
 
-        # Filter out leads that are booked and leads older than 1 month
+        # Filter out leads that are booked (have booked_artists), leads older than 1 month, and leads claimed by this user
         one_month_ago = timezone.now() - timedelta(days=30)
-        leads = leads.exclude(status='booked').filter(created_at__gte=one_month_ago)
+        leads = leads.exclude(booked_artists__isnull=False).filter(created_at__gte=one_month_ago)
+        if artist_profile:
+            leads = leads.exclude(claimed_artists=artist_profile)
 
         if limit_param:
             try:
