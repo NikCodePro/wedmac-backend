@@ -10,47 +10,41 @@ class DocumentUploadView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
-        serializer = DocumentUploadSerializer(data=request.data, context={'request': request})
+        # Handle multiple files upload
+        files = request.FILES.getlist('files')
+        if not files:
+            return Response({"error": "No files provided."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if len(files) > 8:
+            return Response({"error": "Maximum 8 files can be uploaded at a time."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Prepare data for serializer
+        data = {
+            'files': files,
+            'file_type': request.data.get('file_type', 'image'),
+            'tag': request.data.get('tag', '')
+        }
+
+        serializer = DocumentUploadSerializer(data=data, context={'request': request})
 
         if serializer.is_valid():
-            file = request.FILES.get("file")
-            file_type = serializer.validated_data.get("file_type")
-            tag = serializer.validated_data.get("tag", "")
-            user = request.user
+            uploaded_documents = serializer.save()
 
-            # Deactivate previous document
-            Document.objects.filter(
-                uploaded_by=user,
-                file_type=file_type,
-                tag=tag,
-                is_active=True
-            ).update(is_active=False)
-
-            # Upload to Cloudinary
-            result = cloudinary.uploader.upload(
-                file,
-                resource_type="auto",
-                folder="artist_documents/"
-            )
-
-            # Save new document
-            document = Document.objects.create(
-                uploaded_by=user,
-                file_name=file.name,
-                file_type=file_type,
-                tag=tag,
-                file_url=result.get("secure_url"),
-                public_id=result.get("public_id"),
-                is_active=True
-            )
+            # Prepare response data
+            documents_data = []
+            for doc in uploaded_documents:
+                documents_data.append({
+                    "document_id": doc.id,
+                    "file_name": doc.file_name,
+                    "file_type": doc.file_type,
+                    "tag": doc.tag,
+                    "file_url": doc.file_url
+                })
 
             return Response({
-                "message": "Document uploaded successfully.",
-                "document_id": document.id,
-                "file_name": document.file_name,
-                "file_type": document.file_type,
-                "tag": document.tag,
-                "file_url": document.file_url
+                "message": f"{len(uploaded_documents)} document(s) uploaded successfully.",
+                "count": len(uploaded_documents),
+                "documents": documents_data
             }, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
