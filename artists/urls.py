@@ -16,6 +16,7 @@ from artists.view.refferal_code_view import generate_referral_code, get_referral
 from artists.view.artist_service_view import ArtistServiceManageView
 from artists.view.update_extended_days import UpdateExtendedDaysView
 from artists.view.admin_set_current_plan import AdminSetCurrentPlanView
+from artists.view.admin_update_mobile import AdminUpdateMobileView
 
 urlpatterns = [
     path('complete-profile/', CompleteArtistProfileView.as_view(), name='complete_profile'),
@@ -46,6 +47,8 @@ urlpatterns = [
     path('admin/update-extended-days/', UpdateExtendedDaysView.as_view(), name='update-extended-days'),
     # Admin set current plan
     path('admin/<int:artist_id>/set-current-plan/', AdminSetCurrentPlanView.as_view(), name='admin-set-current-plan'),
+    # Admin update artist mobile number
+    path('admin/<int:artist_id>/update-mobile/', AdminUpdateMobileView.as_view(), name='admin-update-mobile'),
     # path('services/', ArtistServiceManageView.as_view(), name='artist-services'),
 ]
 
