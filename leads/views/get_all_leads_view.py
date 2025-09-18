@@ -5,6 +5,9 @@ from leads.models.models import Lead
 from leads.serializers.serializers import LeadSerializer
 from django.utils import timezone
 from datetime import timedelta
+import logging
+
+logger = logging.getLogger(__name__)
 
 class GetAllLeadsView(APIView):
     permission_classes = [IsAuthenticated]
@@ -16,16 +19,23 @@ class GetAllLeadsView(APIView):
         artist_profile = None
         try:
             artist_profile = user.artistprofile
-        except Exception:
-            pass
+            logger.info(f"User {user.id} has artist profile: {artist_profile.id if artist_profile else None}")
+        except Exception as e:
+            logger.info(f"User {user.id} does not have artist profile: {str(e)}")
 
         leads = Lead.objects.filter(is_deleted=False).order_by('-created_at')
 
         # Filter out leads that are booked (have booked_artists), leads older than 1 month, and leads claimed by this user
         one_month_ago = timezone.now() - timedelta(days=30)
         leads = leads.exclude(booked_artists__isnull=False).filter(created_at__gte=one_month_ago)
+        
         if artist_profile:
             leads = leads.exclude(claimed_artists=artist_profile)
+            logger.info(f"Excluded leads claimed by artist profile {artist_profile.id}")
+        else:
+            # If user doesn't have artist profile, exclude leads where user is the requested_artist
+            leads = leads.exclude(requested_artist__user=user)
+            logger.info(f"Excluded leads where user {user.id} is the requested_artist")
 
         if limit_param:
             try:
@@ -42,6 +52,8 @@ class GetAllLeadsView(APIView):
         for i, lead in enumerate(leads):
             leads_data[i]['claimed_count'] = lead.claimed_artists.count()
             leads_data[i]['booked_count'] = lead.booked_artists.count()
+
+        logger.info(f"Returning {len(leads_data)} leads for user {user.id}")
 
         return Response({
             "message": "Fetched all leads successfully.",
