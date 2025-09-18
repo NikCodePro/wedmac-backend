@@ -35,8 +35,9 @@ class ClaimLeadView(APIView):
             if lead.claimed_artists.count() >= lead.max_claims:
                 return Response({"error": "Maximum claims reached for this lead."}, status=400)
 
-            # 5. Add artist to claimed_artists
+            # 5. Add artist to claimed_artists and update status
             lead.claimed_artists.add(artist_profile)
+            lead.status = 'claimed'  # Update status to claimed
             lead.save()
 
             return Response({
@@ -44,6 +45,7 @@ class ClaimLeadView(APIView):
                 "lead_id": lead.id,
                 "claimed_count": lead.claimed_artists.count(),
                 "max_claims": lead.max_claims,
+                "status": lead.status,
                 "created_at": lead.created_at,
                 "updated_at": lead.updated_at
             }, status=200)
