@@ -100,7 +100,7 @@ class ArtistProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ArtistProfile
-        fields = [
+        fields = ["id",
             'first_name', 'last_name', 'phone', 'email', 'gender', 'date_of_birth',
             'referel_code', 'offer_chosen', 'bio',
             'type_of_makeup', 'products_used', 'products_used_data',
