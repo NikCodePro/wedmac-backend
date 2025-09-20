@@ -174,42 +174,76 @@ class ArtistProfileSerializer(serializers.ModelSerializer):
 
 class AdminArtistProfileSerializer(serializers.ModelSerializer):
     user_phone = serializers.CharField(source="user.phone", read_only=True)
-    location = serializers.StringRelatedField()
+    location = LocationSerializer()
+    type_of_makeup = MakeupTypeSerializer(many=True)
+    products_used = ProductSerializer(many=True)
+    payment_methods = PaymentMethodSerializer(many=True)
+    social_links = SocialLinkSerializer(many=True)
+    current_plan = SubscriptionPlanSerializer()
+    
+    # Document related fields
     profile_picture = serializers.SerializerMethodField()
     certifications = serializers.SerializerMethodField()
+    id_documents = serializers.SerializerMethodField()
+    supporting_images = serializers.SerializerMethodField()
 
     class Meta:
         model = ArtistProfile
         fields = [
-            "id",
-            "user_phone",
-            "first_name", "last_name",
-            "phone", "email",
-            "gender", "date_of_birth",
-            "location",
-            "payment_status", "status",
-            "internal_notes",
-            "profile_picture",
-            "certifications",
-            "created_at",
+            'id',
+            'user_phone',
+            # Personal Info
+            'first_name',
+            'last_name',
+            'phone',
+            'email',
+            'gender',
+            'date_of_birth',
+            # Location
+            'location',
+            # Business Details
+            'referel_code',
             'my_referral_code',
-            "bio",
-            "type_of_makeup",
-            "price_range",
-            "experience_years",
-            "services",
-            "profile_picture",
-            "certifications",
-            "id_documents",
-            "is_active",
-            # new
-            "my_claimed_leads",
-            "tag",  # Added tag field
-            "current_plan", "plan_purchase_date", "plan_verified",
-            "available_leads",
-            "extended_days",
+            'offer_chosen',
+            'bio',
+            'type_of_makeup',
+            'price_range',
+            'products_used',
+            'experience_years',
+            'payment_methods',
+            'services',
+            'travel_charges',
+            'travel_policy',
+            'trial_available',
+            'trial_paid_type',
+            'tag',
+            # Social Links
+            'social_links',
+            # Documents
+            'profile_picture',
+            'certifications',
+            'id_documents',
+            'supporting_images',
+            # Status and Metrics
+            'payment_status',
+            'status',
+            'internal_notes',
+            'average_rating',
+            'total_ratings',
+            'available_leads',
+            'is_active',
+            'my_claimed_leads',
+            'total_bookings',
+            # Plan Related
+            'current_plan',
+            'plan_purchase_date',
+            'plan_verified',
+            'extended_days',
+            # Other
+            'created_by_admin',
+            'created_at'
         ]
-
+    
     def get_profile_picture(self, obj):
         if obj.profile_picture:
             return DocumentSerializer(obj.profile_picture).data
@@ -217,6 +251,12 @@ class AdminArtistProfileSerializer(serializers.ModelSerializer):
 
     def get_certifications(self, obj):
         return DocumentSerializer(obj.certifications.all(), many=True).data
+
+    def get_id_documents(self, obj):
+        return DocumentSerializer(obj.id_documents.all(), many=True).data
+
+    def get_supporting_images(self, obj):
+        return DocumentSerializer(obj.supporting_images.all(), many=True).data
 
 
 class ArtistSubscriptionSerializer(serializers.ModelSerializer):
