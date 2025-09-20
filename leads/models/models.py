@@ -38,7 +38,7 @@ class Lead(models.Model):
     email = models.EmailField(blank=True, null=True)
 
     service = models.ForeignKey(Service, on_delete=models.SET_NULL, null=True)
-    event_type = models.CharField(max_length=20, choices=EVENT_CHOICES)
+    event_type = models.CharField(max_length=20, choices=EVENT_CHOICES, null=True, blank=True)
     requirements = models.TextField(blank=True)
     booking_date = models.DateField()
 

@@ -108,6 +108,7 @@ class LeadSerializer(serializers.ModelSerializer):
     claimed_count = serializers.SerializerMethodField()
     booked_count = serializers.SerializerMethodField()
     max_claims = serializers.IntegerField(required=False)
+    event_type = serializers.ChoiceField(choices=Lead.EVENT_CHOICES, required=False, allow_blank=True)
 
 
     class Meta:
