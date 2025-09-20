@@ -17,26 +17,49 @@ class GetAllLeadsView(APIView):
 
         user = request.user
         artist_profile = None
-        try:
-            artist_profile = user.artistprofile
-            logger.info(f"User {user.id} has artist profile: {artist_profile.id if artist_profile else None}")
-        except Exception as e:
-            logger.info(f"User {user.id} does not have artist profile: {str(e)}")
+        excluded_lead_ids = []
 
+        # Get artist profile with better error handling
+        try:
+            if hasattr(user, 'artist_profile'):
+                artist_profile = user.artist_profile
+                logger.info(f"User {user.id} has artist profile: {artist_profile.id if artist_profile else None}")
+            else:
+                logger.info(f"User {user.id} does not have artist_profile attribute")
+        except Exception as e:
+            logger.error(f"Error accessing artist profile for user {user.id}: {str(e)}")
+
+        # Start with all non-deleted leads
         leads = Lead.objects.filter(is_deleted=False).order_by('-created_at')
 
-        # Filter out leads that are booked (have booked_artists), leads older than 1 month, and leads claimed by this user
+        # Filter out leads that are booked (have booked_artists) and leads older than 1 month
         one_month_ago = timezone.now() - timedelta(days=30)
         leads = leads.exclude(booked_artists__isnull=False).filter(created_at__gte=one_month_ago)
-        
+
+        # Filter out claimed leads based on artist profile
         if artist_profile:
+            # Get leads claimed by this artist
+            claimed_leads = leads.filter(claimed_artists=artist_profile)
+            excluded_lead_ids.extend(claimed_leads.values_list('id', flat=True))
+
+            # Exclude claimed leads
             leads = leads.exclude(claimed_artists=artist_profile)
-            logger.info(f"Excluded leads claimed by artist profile {artist_profile.id}")
+            logger.info(f"Excluded {claimed_leads.count()} leads claimed by artist profile {artist_profile.id}")
         else:
             # If user doesn't have artist profile, exclude leads where user is the requested_artist
+            requested_leads = leads.filter(requested_artist__user=user)
+            excluded_lead_ids.extend(requested_leads.values_list('id', flat=True))
             leads = leads.exclude(requested_artist__user=user)
-            logger.info(f"Excluded leads where user {user.id} is the requested_artist")
+            logger.info(f"Excluded {requested_leads.count()} leads where user {user.id} is the requested_artist")
 
+        # Additional safety check: also exclude leads where user is assigned_to
+        if artist_profile:
+            assigned_leads = leads.filter(assigned_to=artist_profile)
+            excluded_lead_ids.extend(assigned_leads.values_list('id', flat=True))
+            leads = leads.exclude(assigned_to=artist_profile)
+            logger.info(f"Excluded {assigned_leads.count()} leads assigned to artist profile {artist_profile.id}")
+
+        # Apply limit if specified
         if limit_param:
             try:
                 limit = int(limit_param)
@@ -53,10 +76,17 @@ class GetAllLeadsView(APIView):
             leads_data[i]['claimed_count'] = lead.claimed_artists.count()
             leads_data[i]['booked_count'] = lead.booked_artists.count()
 
-        logger.info(f"Returning {len(leads_data)} leads for user {user.id}")
+        logger.info(f"User {user.id} - Total leads found: {len(leads_data)}, Excluded lead IDs: {excluded_lead_ids}")
 
         return Response({
             "message": "Fetched all leads successfully.",
             "count": leads.count(),
-            "leads": leads_data
+            "leads": leads_data,
+            "debug_info": {
+                "user_id": user.id,
+                "has_artist_profile": artist_profile is not None,
+                "artist_profile_id": artist_profile.id if artist_profile else None,
+                "excluded_lead_ids": excluded_lead_ids,
+                "total_excluded": len(excluded_lead_ids)
+            }
         }, status=200)
