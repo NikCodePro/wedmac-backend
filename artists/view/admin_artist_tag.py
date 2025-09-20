@@ -11,13 +11,13 @@ class AdminArtistTagView(APIView):
     permission_classes = [IsSuperAdmin]
 
     def get(self, request, artist_id):
-        """Get the current tag for a specific artist"""
+        """Get the current tags for a specific artist"""
         try:
             artist = ArtistProfile.objects.get(id=artist_id)
             return Response({
                 'artist_id': artist.id,
                 'artist_name': f"{artist.first_name} {artist.last_name}",
-                'tag': artist.tag
+                'tags': artist.tag or []
             }, status=status.HTTP_200_OK)
         except ArtistProfile.DoesNotExist:
             return Response({
@@ -25,20 +25,35 @@ class AdminArtistTagView(APIView):
             }, status=status.HTTP_404_NOT_FOUND)
 
     def post(self, request, artist_id):
-        """Update the tag for a specific artist"""
+        """Update the tags for a specific artist"""
         try:
             artist = ArtistProfile.objects.get(id=artist_id)
-            tag = request.data.get('tag', '')
+            tags = request.data.get('tags', [])
 
-            # Update the tag
-            artist.tag = tag
+            # Validate tags
+            if not isinstance(tags, list):
+                return Response({
+                    'error': 'Tags must be a list of strings'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Limit to 10 tags maximum
+            if len(tags) > 10:
+                return Response({
+                    'error': 'Maximum 10 tags allowed per artist'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Filter out empty strings and duplicates
+            tags = list(set(tag.strip() for tag in tags if tag.strip()))
+
+            # Update the tags
+            artist.tag = tags
             artist.save()
 
             return Response({
-                'message': 'Tag updated successfully',
+                'message': f'{len(tags)} tags updated successfully',
                 'artist_id': artist.id,
                 'artist_name': f"{artist.first_name} {artist.last_name}",
-                'tag': artist.tag
+                'tags': artist.tag
             }, status=status.HTTP_200_OK)
 
         except ArtistProfile.DoesNotExist:
@@ -64,7 +79,7 @@ class AdminArtistTagListView(APIView):
                 'id': artist.id,
                 'name': f"{artist.first_name} {artist.last_name}",
                 'phone': artist.phone,
-                'tag': artist.tag,
+                'tags': artist.tag or [],
                 'status': artist.status,
                 'created_at': artist.created_at
             })
