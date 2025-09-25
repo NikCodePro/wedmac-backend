@@ -44,11 +44,7 @@ class BookLeadView(APIView):
             if lead.booked_artists.filter(id=artist_profile.id).exists():
                 return Response({"error": "You have already booked this lead."}, status=400)
 
-            # 6. Deduct one lead from available_leads
-            artist_profile.available_leads -= 1
-            artist_profile.save()
-
-            # 7. Add to booked_artists and set status to 'booked'
+            # 6. Add to booked_artists and set status to 'booked'
             lead.booked_artists.add(artist_profile)
             lead.status = 'booked'
             lead.save()
