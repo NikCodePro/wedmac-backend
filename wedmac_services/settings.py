@@ -118,27 +118,6 @@ WSGI_APPLICATION = 'wedmac_services.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'wedmac',
-#         'USER': 'wedmac',
-#         'PASSWORD': 'wedmac_psw',
-#         'HOST': 'localhost',
-#         'PORT': '3306',
-#     }
-# }
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'wedmac',
-#         'USER': 'root',
-#         'PASSWORD': 'KsxFeBvKPbHpBbeJHDlOHbMZJQrvLKTJ',
-#         'HOST': 'switchyard.proxy.rlwy.net',
-#         'PORT': '20897',
-#     }
-# }
 #new live railway db
 DATABASES = {
     'default': {
@@ -148,6 +127,11 @@ DATABASES = {
         'PASSWORD': config('DB_PASSWORD'),
         'HOST': config('DB_HOST'),
         'PORT': config('DB_PORT'),
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            'connect_timeout': 120,
+        },
+        'CONN_MAX_AGE': 120,
     }
 }
 
