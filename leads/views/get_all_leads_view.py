@@ -36,6 +36,15 @@ class GetAllLeadsView(APIView):
         one_month_ago = timezone.now() - timedelta(days=30)
         leads = leads.exclude(booked_artists__isnull=False).filter(created_at__gte=one_month_ago)
 
+        # Exclude leads that have reached max claims
+        from django.db.models import Count
+        from django.db import models
+        leads = leads.annotate(
+            claimed_count=Count('claimed_artists')
+        ).exclude(
+            claimed_count__gte=models.F('max_claims')
+        )
+
         # Filter out claimed leads based on artist profile
         if artist_profile:
             # Get leads claimed by this artist
