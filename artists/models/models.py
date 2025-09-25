@@ -134,6 +134,25 @@ class SocialLink(models.Model):
     class Meta:
         unique_together = ['artist', 'platform']
 
+class ExpiredPlanLog(models.Model):
+    """Model to store logs of expired artist plans"""
+    artist = models.ForeignKey('ArtistProfile', on_delete=models.CASCADE, related_name='expired_plan_logs')
+    plan = models.ForeignKey('adminpanel.SubscriptionPlan', on_delete=models.CASCADE)
+    plan_purchase_date = models.DateTimeField()
+    plan_expiry_date = models.DateTimeField()
+    available_leads_before_expiry = models.IntegerField()
+    expired_at = models.DateTimeField(auto_now_add=True)
+    plan_details = models.JSONField(help_text="Snapshot of plan details at expiry time")
+
+    class Meta:
+        ordering = ['-expired_at']
+        verbose_name = 'Expired Plan Log'
+        verbose_name_plural = 'Expired Plan Logs'
+
+    def __str__(self):
+        return f"{self.artist.first_name} {self.artist.last_name} - {self.plan.name} expired on {self.expired_at.date()}"
+
+
 class ArtistSubscription(models.Model):
     artist = models.ForeignKey('artists.ArtistProfile', on_delete=models.CASCADE)
     plan = models.ForeignKey('adminpanel.SubscriptionPlan', on_delete=models.CASCADE)
