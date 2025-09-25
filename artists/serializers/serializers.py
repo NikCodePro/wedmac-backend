@@ -98,6 +98,9 @@ class ArtistProfileSerializer(serializers.ModelSerializer):
     # trial_paid_type field
     trial_paid_type = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
+    # date_of_birth field - make it optional
+    date_of_birth = serializers.DateField(required=False, allow_null=True)
+
     class Meta:
         model = ArtistProfile
         fields = ["id",
@@ -122,9 +125,20 @@ class ArtistProfileSerializer(serializers.ModelSerializer):
             'extended_days',
         ]
 
+    def to_internal_value(self, data):
+        # Handle empty date_of_birth before validation
+        if 'date_of_birth' in data:
+            dob_value = data['date_of_birth']
+            if dob_value in [None, '', 'null'] or (isinstance(dob_value, str) and dob_value.strip() == ''):
+                data['date_of_birth'] = None
+        return super().to_internal_value(data)
+
     def validate_date_of_birth(self, value):
-        if value in [None, '']:
+        if value in [None, '', 'null']:
             return None
+        if isinstance(value, str) and value.strip() == '':
+            return None
+        # If it's a valid date string, let Django handle the conversion
         return value
 
 
