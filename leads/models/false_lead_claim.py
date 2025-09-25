@@ -1,6 +1,6 @@
 # leads/models/false_lead_claim.py
 from django.db import models
-from artists.models import ArtistProfile
+from artists.models.models import ArtistProfile
 from leads.models.models import Lead
 from users.models import User
 from documents.models import Document

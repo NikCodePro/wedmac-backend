@@ -1,10 +1,9 @@
 from django.db import models
 from django.conf import settings
 from adminpanel.models import BudgetRange, MakeupType, Service
-from artists.models import ArtistProfile, Location
+from artists.models.models import ArtistProfile, Location
 from django.db.models.signals import post_save, pre_save, post_delete
 from django.dispatch import receiver
-from artists.models.models import ArtistProfile
 
 class Lead(models.Model):
     EVENT_CHOICES = [

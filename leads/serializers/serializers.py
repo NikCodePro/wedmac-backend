@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from leads.models.models import Lead
 from adminpanel.models import BudgetRange, MakeupType, Service
-from artists.models import ArtistProfile, Location
+from artists.models.models import ArtistProfile, Location
 from users.models import User
 
 # This is your nested serializer for lead detail view

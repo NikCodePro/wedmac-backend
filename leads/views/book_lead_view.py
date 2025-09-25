@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from django.db import transaction
-from artists.models import ArtistProfile
+from artists.models.models import ArtistProfile
 from leads.models.models import Lead
 
 class BookLeadView(APIView):

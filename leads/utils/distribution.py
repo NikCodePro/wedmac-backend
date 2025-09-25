@@ -1,4 +1,4 @@
-from artists.models import ArtistProfile
+from artists.models.models import ArtistProfile
 from artists.models.models import ArtistSubscription
 from leads.models.lead_distribution_rule import LeadDistributionConfig, LeadDistributionRule
 from django.db import transaction

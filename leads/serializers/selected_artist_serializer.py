@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from leads.models.selected_artist import SelectedArtist
-from artists.models import ArtistProfile
+from artists.models.models import ArtistProfile
 
 class SelectedArtistSerializer(serializers.ModelSerializer):
     artist_name = serializers.SerializerMethodField()

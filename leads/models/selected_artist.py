@@ -1,5 +1,5 @@
 from django.db import models
-from artists.models import ArtistProfile
+from artists.models.models import ArtistProfile
 
 class SelectedArtist(models.Model):
     artist = models.ForeignKey(ArtistProfile, on_delete=models.CASCADE)
