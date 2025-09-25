@@ -122,6 +122,11 @@ class ArtistProfileSerializer(serializers.ModelSerializer):
             'extended_days',
         ]
 
+    def validate_date_of_birth(self, value):
+        if value in [None, '']:
+            return None
+        return value
+
 
     def get_id_documents_data(self, obj):
         return DocumentSerializer(obj.id_documents.filter(is_active=True), many=True).data
