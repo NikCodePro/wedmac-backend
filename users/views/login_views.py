@@ -75,6 +75,9 @@ class OTPLoginView(APIView):
             print(f"OTP verification response: {response}")
             if response.get('Status') == 'Success': # 'Success' means OTP verification successful
                 user = User.objects.get(phone=phone)
+                # Mark user as verified after successful OTP verification
+                user.otp_verified = True
+                user.save(update_fields=['otp_verified'])
                 refresh = RefreshToken.for_user(user)
                 return Response({
                     'message': 'Login successful.',
