@@ -54,8 +54,7 @@ class Command(BaseCommand):
                         plan_details=plan_snapshot
                     )
 
-                    # Clear the current plan and reset leads
-                    artist.current_plan = None
+                    # Clear only the available leads, keep the current plan
                     artist.available_leads = 0
                     artist.plan_purchase_date = None
                     artist.plan_verified = False
