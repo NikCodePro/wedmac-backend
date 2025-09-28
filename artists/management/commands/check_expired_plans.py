@@ -36,6 +36,20 @@ class Command(BaseCommand):
 
                 # Check if plan has expired
                 if subscription.end_date and now > subscription.end_date:
+                    # Check if there are extended days
+                    if artist.extended_days and artist.extended_days > 0:
+                        # Extend the subscription end date
+                        subscription.end_date = subscription.end_date + timedelta(days=artist.extended_days)
+                        artist.extended_days = 0
+                        artist.save()
+                        subscription.save()
+                        
+                        logger.info(
+                            f"Extended plan for artist {artist.first_name} {artist.last_name} "
+                            f"(ID: {artist.id}) by {artist.extended_days} days. New expiry: {subscription.end_date}"
+                        )
+                        continue  # Skip expiry processing
+                    
                     # Log the expiry
                     plan_snapshot = {
                         'name': subscription.plan.name,
