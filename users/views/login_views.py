@@ -30,12 +30,14 @@ class RequestLoginOTPView(APIView):
             user = User.objects.get(phone=phone)
             print(f"User found: {user.username} with phone {user.phone}")
             print(f"User OTP verified status: {user.otp_verified}")
-            if not user.is_active:
+            if not user.is_active or (user.role == 'artist' and hasattr(user, 'artist_profile') and not user.artist_profile.is_active):
                 return Response({"error": "User is inactive."}, status=403)
             if not user.otp_verified:
                 return Response({"error": "User's OTP is not verified."}, status=403)
+            print(f"User is active: {user.artist_profile.is_active}")
             # Generate OTP
             otp = str(random.randint(100000, 999999))
+            print(f"+++++======>{otp}")
             # Save OTP in OTPVerification model
             OTPVerification.objects.create(phone=phone, otp=otp)
             response = TwoFactorService(phone=phone, otp=otp).send_otp()
