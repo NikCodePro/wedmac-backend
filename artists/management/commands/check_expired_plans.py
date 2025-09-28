@@ -39,16 +39,20 @@ class Command(BaseCommand):
                     # Check if there are extended days
                     if artist.extended_days and artist.extended_days > 0:
                         # Extend the subscription end date
-                        subscription.end_date = subscription.end_date + timedelta(days=artist.extended_days)
+                        old_extended_days = artist.extended_days
+                        subscription.end_date = subscription.end_date + timedelta(days=old_extended_days)
                         artist.extended_days = 0
                         artist.save()
                         subscription.save()
                         
                         logger.info(
                             f"Extended plan for artist {artist.first_name} {artist.last_name} "
-                            f"(ID: {artist.id}) by {artist.extended_days} days. New expiry: {subscription.end_date}"
+                            f"(ID: {artist.id}) by {old_extended_days} days. New expiry: {subscription.end_date}"
                         )
                         continue  # Skip expiry processing
+                    
+                    # Capture old leads before changing
+                    old_leads = artist.available_leads
                     
                     # Log the expiry
                     plan_snapshot = {
@@ -64,14 +68,12 @@ class Command(BaseCommand):
                         plan=subscription.plan,
                         plan_purchase_date=artist.plan_purchase_date,
                         plan_expiry_date=subscription.end_date,
-                        available_leads_before_expiry=artist.available_leads,
+                        available_leads_before_expiry=old_leads,
                         plan_details=plan_snapshot
                     )
 
-                    # Clear only the available leads, keep the current plan
+                    # Clear only the available leads, keep the current plan intact
                     artist.available_leads = 0
-                    artist.plan_purchase_date = None
-                    artist.plan_verified = False
                     artist.save()
 
                     # Deactivate the subscription
@@ -80,7 +82,7 @@ class Command(BaseCommand):
 
                     logger.info(
                         f"Plan expired for artist {artist.first_name} {artist.last_name} "
-                        f"(ID: {artist.id}). Leads before expiry: {artist.available_leads}. "
+                        f"(ID: {artist.id}). Leads before expiry: {old_leads}. "
                         f"Plan: {subscription.plan.name}, Expiry: {subscription.end_date}"
                     )
 
