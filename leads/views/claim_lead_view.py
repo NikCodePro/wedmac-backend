@@ -43,8 +43,23 @@ class ClaimLeadView(APIView):
                 }, status=403)
 
             # 6. Deduct one lead from available_leads
+            leads_before = int(artist_profile.available_leads or 0)
             artist_profile.available_leads -= 1
             artist_profile.save()
+            leads_after = int(artist_profile.available_leads or 0)
+
+            # Log the lead claim activity
+            from artists.models.models import ArtistActivityLog
+            ArtistActivityLog.objects.create(
+                artist=artist_profile,
+                activity_type='claim',
+                leads_before=leads_before,
+                leads_after=leads_after,
+                details={
+                    'lead_id': lead.id,
+                    'lead_status': lead.status,
+                }
+            )
 
             # 7. Add artist to claimed_artists and update status
             lead.claimed_artists.add(artist_profile)

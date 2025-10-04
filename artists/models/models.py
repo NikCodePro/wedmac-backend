@@ -134,6 +134,30 @@ class SocialLink(models.Model):
     class Meta:
         unique_together = ['artist', 'platform']
 
+class ArtistActivityLog(models.Model):
+    """Model to store logs of artist activities: purchase, claim, expiry"""
+    ACTIVITY_TYPES = [
+        ('purchase', 'Plan Purchase'),
+        ('claim', 'Lead Claim'),
+        ('expiry', 'Plan Expiry'),
+    ]
+
+    artist = models.ForeignKey('ArtistProfile', on_delete=models.CASCADE, related_name='activity_logs')
+    activity_type = models.CharField(max_length=20, choices=ACTIVITY_TYPES)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    leads_before = models.IntegerField()
+    leads_after = models.IntegerField()
+    details = models.JSONField(help_text="Additional details like plan info, lead id, etc.")
+
+    class Meta:
+        ordering = ['-timestamp']
+        verbose_name = 'Artist Activity Log'
+        verbose_name_plural = 'Artist Activity Logs'
+
+    def __str__(self):
+        return f"{self.artist.first_name} {self.artist.last_name} - {self.activity_type} at {self.timestamp}"
+
+
 class ExpiredPlanLog(models.Model):
     """Model to store logs of expired artist plans"""
     artist = models.ForeignKey('ArtistProfile', on_delete=models.CASCADE, related_name='expired_plan_logs')

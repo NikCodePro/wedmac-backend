@@ -73,8 +73,25 @@ class Command(BaseCommand):
                     )
 
                     # Clear only the available leads, keep the current plan intact
+                    leads_before = int(artist.available_leads or 0)
                     artist.available_leads = 0
                     artist.save()
+                    leads_after = int(artist.available_leads or 0)
+
+                    # Log the expiry activity
+                    from artists.models.models import ArtistActivityLog
+                    ArtistActivityLog.objects.create(
+                        artist=artist,
+                        activity_type='expiry',
+                        leads_before=leads_before,
+                        leads_after=leads_after,
+                        details={
+                            'plan_name': subscription.plan.name,
+                            'plan_id': subscription.plan.id,
+                            'subscription_id': subscription.id,
+                            'expired_at': subscription.end_date.isoformat()
+                        }
+                    )
 
                     # Deactivate the subscription
                     subscription.is_active = False

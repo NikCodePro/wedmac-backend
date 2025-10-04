@@ -191,15 +191,31 @@ class VerifyPaymentView(APIView):
             except Exception:
                 leads_to_add = 0
 
+            leads_before = int(artist.available_leads or 0)
             if hasattr(artist, 'available_leads'):
-                current = int(artist.available_leads or 0)
-                artist.available_leads = current + leads_to_add
+                artist.available_leads = leads_before + leads_to_add
             elif hasattr(artist, 'available_lead'):
-                current = int(artist.available_lead or 0)
-                artist.available_lead = current + leads_to_add
+                artist.available_lead = leads_before + leads_to_add
             else:
                 # if your model doesn't have a field, create one or log/skip
                 pass
+
+            leads_after = int(artist.available_leads or 0)
+
+            # Log the purchase activity
+            from artists.models.models import ArtistActivityLog
+            ArtistActivityLog.objects.create(
+                artist=artist,
+                activity_type='purchase',
+                leads_before=leads_before,
+                leads_after=leads_after,
+                details={
+                    'plan_name': subscription.plan.name,
+                    'plan_id': subscription.plan.id,
+                    'subscription_id': subscription.id,
+                    'leads_added': leads_to_add
+                }
+            )
 
             artist.save()
 
