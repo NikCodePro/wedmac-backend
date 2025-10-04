@@ -123,6 +123,7 @@ class ArtistProfileSerializer(serializers.ModelSerializer):
             'current_plan', 'plan_purchase_date', 'plan_verified',
             'available_leads',
             'extended_days',
+            'preferred_locations',
         ]
 
     def to_internal_value(self, data):
@@ -258,6 +259,7 @@ class AdminArtistProfileSerializer(serializers.ModelSerializer):
             'plan_purchase_date',
             'plan_verified',
             'extended_days',
+            'preferred_locations',
             # Other
             'created_by_admin',
             'created_at'

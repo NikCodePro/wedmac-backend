@@ -98,6 +98,9 @@ class ArtistProfile(models.Model):
     plan_purchase_date = models.DateTimeField(null=True, blank=True)
     plan_verified = models.BooleanField(default=False)
 
+    # new: preferred locations (array of city names)
+    preferred_locations = models.JSONField(default=list, blank=True, help_text="List of preferred city names")
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
