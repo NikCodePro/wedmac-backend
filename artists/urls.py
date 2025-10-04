@@ -17,6 +17,8 @@ from artists.view.artist_service_view import ArtistServiceManageView
 from artists.view.update_extended_days import UpdateExtendedDaysView
 from artists.view.admin_set_current_plan import AdminSetCurrentPlanView
 from artists.view.admin_update_mobile import AdminUpdateMobileView
+from artists.view.artist_activity_logs_view import ArtistActivityLogsView
+from artists.view.admin_artist_activity_logs_view import AdminArtistActivityLogsView
 
 urlpatterns = [
     path('complete-profile/', CompleteArtistProfileView.as_view(), name='complete_profile'),
@@ -49,6 +51,9 @@ urlpatterns = [
     path('admin/<int:artist_id>/set-current-plan/', AdminSetCurrentPlanView.as_view(), name='admin-set-current-plan'),
     # Admin update artist mobile number
     path('admin/<int:artist_id>/update-mobile/', AdminUpdateMobileView.as_view(), name='admin-update-mobile'),
+    # Artist activity logs
+    path('activity-logs/', ArtistActivityLogsView.as_view(), name='artist-activity-logs'),
+    path('admin/<int:artist_id>/activity-logs/', AdminArtistActivityLogsView.as_view(), name='admin-artist-activity-logs'),
     # path('services/', ArtistServiceManageView.as_view(), name='artist-services'),
 ]
 

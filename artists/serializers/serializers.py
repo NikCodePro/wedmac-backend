@@ -296,3 +296,18 @@ class ArtistServicesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Service
         fields = ['id', 'name', 'description', 'price', 'credits']
+
+
+from artists.models.models import ArtistActivityLog
+
+class ArtistActivityLogSerializer(serializers.ModelSerializer):
+    artist_name = serializers.CharField(source='artist.first_name', read_only=True)
+    artist_phone = serializers.CharField(source='artist.phone', read_only=True)
+
+    class Meta:
+        model = ArtistActivityLog
+        fields = [
+            'id', 'activity_type', 'timestamp', 'leads_before', 'leads_after', 'details',
+            'artist_name', 'artist_phone'
+        ]
+        read_only_fields = ['id', 'timestamp']
