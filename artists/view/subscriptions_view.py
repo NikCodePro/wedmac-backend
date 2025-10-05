@@ -211,8 +211,8 @@ class VerifyPaymentView(APIView):
                 leads_after=leads_after,
                 details={
                     'plan_name': subscription.plan.name,
-                    'plan_id': subscription.plan.id,
-                    'subscription_id': subscription.id,
+                    'plan_id': str(subscription.plan.id),
+                    'subscription_id': str(subscription.id),
                     'leads_added': leads_to_add
                 }
             )
@@ -221,7 +221,7 @@ class VerifyPaymentView(APIView):
 
             return Response({
                 'success': 'Payment verified and subscription activated',
-                'subscription_id': subscription.id,
+                'subscription_id': str(subscription.id),
                 'end_date': subscription.end_date.isoformat()
             }, status=status.HTTP_200_OK)
 
