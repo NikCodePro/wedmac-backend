@@ -193,9 +193,10 @@ class VerifyPaymentView(APIView):
 
             leads_before = int(artist.available_leads or 0)
             if hasattr(artist, 'available_leads'):
-                artist.available_leads = leads_before + leads_to_add
+                # Replace old leads with new leads instead of adding
+                artist.available_leads = leads_to_add
             elif hasattr(artist, 'available_lead'):
-                artist.available_lead = leads_before + leads_to_add
+                artist.available_lead = leads_to_add
             else:
                 # if your model doesn't have a field, create one or log/skip
                 pass
@@ -213,7 +214,7 @@ class VerifyPaymentView(APIView):
                     'plan_name': subscription.plan.name,
                     'plan_id': str(subscription.plan.id),
                     'subscription_id': str(subscription.id),
-                    'leads_added': leads_to_add
+                    'leads_replaced': leads_to_add
                 }
             )
 
