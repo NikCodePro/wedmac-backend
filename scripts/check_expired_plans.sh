@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 # Script to check for expired artist subscription plans
