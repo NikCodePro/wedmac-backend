@@ -14,6 +14,9 @@ class GetAllLeadsView(APIView):
 
     def get(self, request):
         limit_param = request.query_params.get('limit', None)
+        location_filter = request.query_params.get('location', None)
+        name_filter = request.query_params.get('name', None)
+        makeup_type_filter = request.query_params.get('makeup_type', None)
 
         user = request.user
         artist_profile = None
@@ -31,6 +34,29 @@ class GetAllLeadsView(APIView):
 
         # Start with all non-deleted leads
         leads = Lead.objects.filter(is_deleted=False).order_by('-created_at')
+
+        # Apply filters before other exclusions
+        if location_filter:
+            leads = leads.filter(location__icontains=location_filter)
+
+        if name_filter:
+            leads = leads.filter(
+                models.Q(first_name__icontains=name_filter) |
+                models.Q(last_name__icontains=name_filter)
+            )
+
+        if makeup_type_filter:
+            # Split by comma if multiple makeup types provided
+            makeup_types = [mt.strip() for mt in makeup_type_filter.split(',') if mt.strip()]
+            if makeup_types:
+                from adminpanel.models import MakeupType
+                # Get makeup type IDs by name
+                makeup_type_ids = MakeupType.objects.filter(
+                    name__in=makeup_types
+                ).values_list('id', flat=True)
+                if makeup_type_ids:
+                    # Filter leads that have any of these makeup types
+                    leads = leads.filter(makeup_types__id__in=makeup_type_ids)
 
         # Filter out leads that are booked (have booked_artists) and leads older than 1 month
         one_month_ago = timezone.now() - timedelta(days=30)
