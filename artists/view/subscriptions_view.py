@@ -181,8 +181,16 @@ class VerifyPaymentView(APIView):
             artist.payment_status = 'approved'
 
             # Update the new plan-related fields when payment is verified
+            # Check if this is reactivating an expired plan (plan_purchase_date was None)
+            was_expired = artist.plan_purchase_date is None
+
             artist.current_plan = subscription.plan
             artist.plan_purchase_date = now
+
+            # Set retained_plan_date if this is reactivating an expired plan
+            if was_expired:
+                artist.retained_plan_date = now
+
             artist.plan_verified = True
 
             # Add plan leads to artist available leads (handle both possible field names)

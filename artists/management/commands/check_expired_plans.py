@@ -34,8 +34,11 @@ class Command(BaseCommand):
                     logger.warning(f"No active subscription found for artist {artist.id} with plan {artist.current_plan.id}")
                     continue
 
-                # Calculate effective end date considering extended days
-                if subscription.end_date and now > subscription.end_date:
+                # Calculate effective end date considering extended days and retained plan date
+                if artist.retained_plan_date and artist.extended_days and artist.extended_days > 0:
+                    # If plan was retained and has extended days, calculate from retained date
+                    effective_end_date = artist.retained_plan_date + timedelta(days=artist.extended_days)
+                elif subscription.end_date and now > subscription.end_date:
                     # Plan expired, check if extended days exist
                     if artist.extended_days and artist.extended_days > 0:
                         # Use only extended days as effective end date from now
@@ -83,7 +86,13 @@ class Command(BaseCommand):
                     # Clear only the available leads, keep the current plan intact
                     leads_before = int(artist.available_leads or 0)
                     artist.available_leads = 0
-                    artist.extended_days = 0  # Reset extended days as they were consumed
+                    artist.extended_days = None  # Reset extended days as they were consumed
+                    artist.plan_purchase_date = None  # Set to null to denote plan has expired
+
+                    # If this was a retained plan and extended days expired, also clear retained date
+                    if artist.retained_plan_date:
+                        artist.retained_plan_date = None
+
                     artist.save()
                     leads_after = int(artist.available_leads or 0)
 

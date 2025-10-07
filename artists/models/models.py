@@ -96,6 +96,7 @@ class ArtistProfile(models.Model):
     # new: current purchased plan information
     current_plan = models.ForeignKey('adminpanel.SubscriptionPlan', on_delete=models.SET_NULL, null=True, blank=True, related_name='current_artist_profiles')
     plan_purchase_date = models.DateTimeField(null=True, blank=True)
+    retained_plan_date = models.DateTimeField(null=True, blank=True, help_text="Date when expired plan was retained/reactivated")
     plan_verified = models.BooleanField(default=False)
 
     # new: preferred locations (array of city names)
