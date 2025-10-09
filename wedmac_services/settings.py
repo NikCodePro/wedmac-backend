@@ -30,7 +30,8 @@ SECRET_KEY = config('SECRET_KEY')
 import os
 # Add this to your settings
 MASTER_OTP = config('MASTER_OTP', default='987654')  # Choose your 6-digit master OTP
-DEBUG = config('DEBUG', default=True, cast=bool)
+# DEBUG = config('DEBUG', default=False, cast=bool)
+DEBUG = False
 
 ALLOWED_HOSTS = ["89.116.33.217 ", "localhost", "127.0.0.1","wedmac-be.onrender.com","api.wedmacindia.com"]
 
