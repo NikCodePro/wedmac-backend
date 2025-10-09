@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script to check for expired artist subscription plans
-# This script should be added to crontab to run daily
+# This script should be added to crontab to run hourly
 
 # Set the project directory (update this path to match your deployment)
 PROJECT_DIR="/var/www/wedmac-backend"  # Update this to your actual path

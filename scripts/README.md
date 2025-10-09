@@ -36,17 +36,19 @@ This directory contains scripts to automatically check for expired artist subscr
    ./scripts/check_expired_plans.sh
    ```
 
-6. **Add to crontab for daily execution**
+6. **Add to crontab for hourly execution**
    ```bash
    crontab -e
    ```
 
-7. **Add this line to run daily at 2:00 AM**
+7. **Add this line to run every hour**
    ```
-   0 2 * * * /var/www/wedmac-backend/scripts/check_expired_plans.sh
+   0 * * * * /var/www/wedmac-backend/scripts/check_expired_plans.sh
    ```
 
    **Cron schedule options:**
+   - `0 * * * *` - Every hour at minute 0
+   - `*/30 * * * *` - Every 30 minutes
    - `0 2 * * *` - Daily at 2:00 AM
    - `0 */6 * * *` - Every 6 hours
    - `0 2 * * 1` - Every Monday at 2:00 AM
