@@ -34,33 +34,13 @@ class Command(BaseCommand):
                     logger.warning(f"No active subscription found for artist {artist.id} with plan {artist.current_plan.id}")
                     continue
 
-                # Calculate effective end date considering extended days and retained plan date
-                if artist.retained_plan_date and artist.extended_days and artist.extended_days > 0:
-                    # If plan was retained and has extended days, calculate from retained date
-                    effective_end_date = artist.retained_plan_date + timedelta(days=artist.extended_days)
-                elif subscription.end_date and now > subscription.end_date:
-                    # Plan expired, check if extended days exist
-                    if artist.extended_days and artist.extended_days > 0:
-                        # Use only extended days as effective end date from now
-                        effective_end_date = subscription.end_date + timedelta(days=artist.extended_days)
-                        if now > effective_end_date:
-                            # Extended days also expired, proceed with expiry
-                            pass
-                        else:
-                            # Plan is extended only by extended_days, skip expiry
-                            logger.info(
-                                f"Plan expired but extended days active for artist {artist.first_name} {artist.last_name} "
-                                f"(ID: {artist.id}). Extended days: {artist.extended_days}. New expiry: {effective_end_date}"
-                            )
-                            continue
-                    else:
-                        # No extended days, plan expired
-                        effective_end_date = subscription.end_date
-                else:
-                    effective_end_date = subscription.end_date
+                # Calculate expiry date: base is subscription.end_date, extended by extended_days if any
+                expiry_date = subscription.end_date
+                if artist.extended_days and artist.extended_days > 0:
+                    expiry_date = subscription.end_date + timedelta(days=artist.extended_days)
 
-                # Check if plan has expired (considering extended days)
-                if effective_end_date and now > effective_end_date:
+                # Check if plan has expired
+                if expiry_date and now > expiry_date:
                     
                     # Capture old leads before changing
                     old_leads = artist.available_leads
