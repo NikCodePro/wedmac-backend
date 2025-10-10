@@ -186,12 +186,15 @@ class VerifyPaymentView(APIView):
 
             artist.current_plan = subscription.plan
             artist.plan_purchase_date = now
+            artist.retained_plan_date = None
 
             # Set retained_plan_date if this is reactivating an expired plan
-            if was_expired:
-                artist.retained_plan_date = now
+            # if was_expired:
+            #     artist.retained_plan_date = now
+            # else:
+            #     # For fresh plan purchases, set retained_plan_date to null to show extension is over
+            #     e
 
-            artist.plan_verified = True
 
             # Add plan leads to artist available leads (handle both possible field names)
             try:

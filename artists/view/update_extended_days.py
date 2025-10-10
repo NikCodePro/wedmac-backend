@@ -53,6 +53,12 @@ class UpdateExtendedDaysView(APIView):
             artist.extended_days = new_value
             response_data["extended_days"] = new_value
 
+            # If adding extended days to an expired plan, set retained_plan_date to recognize the extended period
+            if delta_extended_days > 0 and artist.plan_purchase_date is None:
+                from django.utils import timezone
+                artist.retained_plan_date = timezone.now()
+                logger.info(f"Setting retained_plan_date for expired plan reactivation via extended days for artist {artist_id}")
+
         # Update available_leads if provided
         if delta_available_leads is not None:
             leads_before = int(artist.available_leads or 0)
