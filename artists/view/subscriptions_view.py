@@ -187,6 +187,7 @@ class VerifyPaymentView(APIView):
             artist.current_plan = subscription.plan
             artist.plan_purchase_date = now
             artist.retained_plan_date = None
+            artist.extended_days = 0
 
             # Set retained_plan_date if this is reactivating an expired plan
             # if was_expired:
