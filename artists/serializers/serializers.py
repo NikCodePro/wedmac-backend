@@ -122,7 +122,7 @@ class ArtistProfileSerializer(serializers.ModelSerializer):
             # new: current plan information
             'current_plan', 'plan_purchase_date', 'plan_verified',
             'available_leads',
-            'extended_days',
+            'extended_days', 'retained_plan_date',
             'preferred_locations',
         ]
 
@@ -258,7 +258,7 @@ class AdminArtistProfileSerializer(serializers.ModelSerializer):
             'current_plan',
             'plan_purchase_date',
             'plan_verified',
-            'extended_days',
+            'extended_days', 'retained_plan_date',
             'preferred_locations',
             # Other
             'created_by_admin',
