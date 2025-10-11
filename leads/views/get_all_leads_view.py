@@ -32,8 +32,8 @@ class GetAllLeadsView(APIView):
         except Exception as e:
             logger.error(f"Error accessing artist profile for user {user.id}: {str(e)}")
 
-        # Start with all non-deleted leads
-        leads = Lead.objects.filter(is_deleted=False).order_by('-created_at')
+        # Start with all non-deleted and verified leads
+        leads = Lead.objects.filter(is_deleted=False, is_verified=True).order_by('-created_at')
 
         # Apply filters before other exclusions
         if location_filter:
