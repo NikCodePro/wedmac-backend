@@ -13,7 +13,7 @@ from leads.views.list_false_claims_admin_view import ListFalseClaimsAdminView
 from leads.views.raise_false_claim_view import RaiseFalseLeadClaimView
 from leads.views.resolve_false_claim_view import ResolveFalseClaimView
 from leads.views.update_leads_view import UpdateLeadView
-from leads.views.views import AdminCreateLeadView, PublicLeadSubmissionView, AdminCreateMultipleLeadsView, AdminDeleteLeadView, GetMyAssignedLeadsView
+from leads.views.views import AdminCreateLeadView, PublicLeadSubmissionView, AdminCreateMultipleLeadsView, AdminDeleteLeadView, GetMyAssignedLeadsView, AdminSetLeadVerifiedView
 from leads.views.admin_leads_count_view import AdminLeadStatusCountView
 from leads.views.selected_artist_view import SelectedArtistView
 from leads.views.set_max_claims_view import SetMaxClaimsView
@@ -23,6 +23,7 @@ urlpatterns = [
     path('admin/create/', AdminCreateLeadView.as_view(), name='admin-create-lead'),
     path('admin/create-multiple/', AdminCreateMultipleLeadsView.as_view(), name='admin-create-multiple-leads'),
     path('admin/delete/<int:lead_id>/', AdminDeleteLeadView.as_view(), name='admin-delete-lead'),
+    path('admin/<int:lead_id>/set-verified/', AdminSetLeadVerifiedView.as_view(), name='admin-set-lead-verified'),
     path('public/submit/', PublicLeadSubmissionView.as_view(), name='public-lead-submit'),
     path('list/', GetLeadsByStatusView.as_view(), name='get-leads-by-status'),
     path('all-leads/', GetAllLeadsView.as_view(), name='get-all-leads'),

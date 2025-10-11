@@ -160,7 +160,7 @@ class LeadDashboardListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Lead
-        fields = ['id', 'client_name', 'status', 'service', 'booking_date', 'location', 'requirements', 'budget_range', 'phone']
+        fields = ['id', 'client_name', 'status', 'service', 'booking_date', 'location', 'requirements', 'budget_range', 'phone', 'is_verified']
 
     def get_client_name(self, obj):
         return f"{obj.first_name or ''} {obj.last_name or ''}".strip()
@@ -237,7 +237,7 @@ class ClaimedLeadListSerializer(serializers.ModelSerializer):
             'last_contact', 'notes', 'created_at', 'updated_at',
             'service', 'budget_range', 'location',
             'assigned_to', 'requested_artist', 'created_by',
-            'claimed_count', 'booked_count'
+            'claimed_count', 'booked_count', 'is_verified'
         ]
 
     def get_claimed_count(self, obj):

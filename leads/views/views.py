@@ -51,6 +51,7 @@ class PublicLeadSubmissionView(APIView):
 
         data = request.data.copy()
         data['created_by'] = system_user.id if system_user else None
+        data['is_verified'] = False
 
         serializer = LeadSerializer(data=data)
         if serializer.is_valid():
@@ -200,4 +201,30 @@ class GetMyAssignedLeadsView(APIView):
             "message": "Assigned leads fetched successfully.",
             "count": leads.count(),
             "leads": leads_data
+        }, status=200)
+
+
+class AdminSetLeadVerifiedView(APIView):
+    """
+    Admin view: Update the is_verified status of a lead.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, lead_id):
+        try:
+            lead = Lead.objects.get(id=lead_id)
+        except Lead.DoesNotExist:
+            return Response({"error": "Lead not found"}, status=404)
+
+        is_verified = request.data.get('is_verified')
+        if is_verified is None:
+            return Response({"error": "is_verified is required"}, status=400)
+
+        lead.is_verified = is_verified
+        lead.save(update_fields=['is_verified'])
+
+        return Response({
+            "message": "Lead verification status updated successfully",
+            "lead_id": lead.id,
+            "is_verified": lead.is_verified
         }, status=200)
