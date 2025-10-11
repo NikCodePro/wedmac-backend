@@ -21,6 +21,8 @@ class AdminUpdateArtistLeadsView(APIView):
         except ArtistProfile.DoesNotExist:
             return Response({'error': 'Artist not found.'}, status=status.HTTP_404_NOT_FOUND)
 
+        leads_before = artist.available_leads
+
         if action == 'add':
             artist.available_leads += amount
         else:  # remove
@@ -29,4 +31,20 @@ class AdminUpdateArtistLeadsView(APIView):
             artist.available_leads -= amount
 
         artist.save()
+        leads_after = artist.available_leads
+
+        # Log the admin update activity
+        from artists.models.models import ArtistActivityLog
+        ArtistActivityLog.objects.create(
+            artist=artist,
+            activity_type='admin_update',
+            leads_before=leads_before,
+            leads_after=leads_after,
+            details={
+                'action': action,
+                'amount': amount,
+                'reason': 'Admin lead update - refund or exceptional case'
+            }
+        )
+
         return Response({'message': f'Available leads updated successfully.', 'available_leads': artist.available_leads}, status=status.HTTP_200_OK)

@@ -139,11 +139,12 @@ class SocialLink(models.Model):
         unique_together = ['artist', 'platform']
 
 class ArtistActivityLog(models.Model):
-    """Model to store logs of artist activities: purchase, claim, expiry"""
+    """Model to store logs of artist activities: purchase, claim, expiry, admin_update"""
     ACTIVITY_TYPES = [
         ('purchase', 'Plan Purchase'),
         ('claim', 'Lead Claim'),
         ('expiry', 'Plan Expiry'),
+        ('admin_update', 'Admin Lead Update'),
     ]
 
     artist = models.ForeignKey('ArtistProfile', on_delete=models.CASCADE, related_name='activity_logs')
