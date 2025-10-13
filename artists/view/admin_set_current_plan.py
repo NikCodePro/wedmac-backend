@@ -28,6 +28,8 @@ class AdminSetCurrentPlanView(APIView):
         artist.current_plan = plan
         artist.plan_purchase_date = timezone.now()
         artist.plan_verified = True
+        artist.extended_days = 0  # Reset extended days
+        artist.retained_plan_date = None  # Clear retained plan date
         artist.available_leads = plan.total_leads
         artist.save()
 
