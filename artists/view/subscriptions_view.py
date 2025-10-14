@@ -54,7 +54,6 @@ class PurchaseSubscriptionView(APIView):
             'razorpay_order_id': order['id'],
             'amount': amount_paise,
             'currency': 'INR',
-            'key': settings.RAZORPAY_KEY_ID,
             'plan': plan.name,
         })
 

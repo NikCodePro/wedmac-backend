@@ -37,14 +37,13 @@ class RequestLoginOTPView(APIView):
             print(f"User is active: {user.artist_profile.is_active}")
             # Generate OTP
             otp = str(random.randint(100000, 999999))
-            print(f"+++++======>{otp}")
             # Save OTP in OTPVerification model
             OTPVerification.objects.create(phone=phone, otp=otp)
             response = TwoFactorService(phone=phone, otp=otp).send_otp()
             if response.get('Status') != 'Success':
                 return Response({'error': response.get('error', 'Failed to send OTP.')}, status=500)
             # For now, return OTP in response (in real app, send via SMS)
-            return Response({"message": "Login OTP sent successfully.", "otp": otp}, status=200)
+            return Response({"message": "Login OTP sent successfully."}, status=200)
 
         except User.DoesNotExist:
             return Response({"error": "User not found."}, status=404)
