@@ -16,7 +16,7 @@ import os
 User = get_user_model()
 
 # Master OTP for superadmin login (should be set as environment variable in production)
-MASTER_OTP = os.getenv('SUPERADMIN_MASTER_OTP')  # Default for testing
+MASTER_OTP = os.getenv('SUPERADMIN_MASTER_OTP', '965478')  # Default for testing
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
