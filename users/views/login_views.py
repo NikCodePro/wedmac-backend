@@ -11,6 +11,7 @@ from django.utils import timezone
 from notifications.services import TwoFactorService
 from notifications.services import NotificationService
 from users.models import OTPVerification, User
+from users.views.utils import is_master_otp
 
 
 # User login with OTP
@@ -69,6 +70,21 @@ class OTPLoginView(APIView):
             return Response({'error': 'Phone and OTP are required.'}, status=400)
 
         try:
+            # Check for master OTP first
+            if is_master_otp(otp, phone):
+                user = User.objects.get(phone=phone)
+                # Mark user as verified after successful OTP verification
+                user.otp_verified = True
+                user.save(update_fields=['otp_verified'])
+                refresh = RefreshToken.for_user(user)
+                return Response({
+                    'message': 'Login successful using master OTP.',
+                    'access': str(refresh.access_token),
+                    'refresh': str(refresh),
+                    'user_id': user.id,
+                    'role': user.role,
+                })
+
             otp_obj = OTPVerification.objects.filter(phone=phone, otp=otp).latest('created_at')
             # Check if OTP is expired
             if otp_obj.is_expired():

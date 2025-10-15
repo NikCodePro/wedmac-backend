@@ -7,8 +7,7 @@ logger = logging.getLogger(__name__)
 
 def is_master_otp(otp: str, phone: str) -> bool:
     """Check if the provided OTP is the master OTP"""
-    # master_otp = getattr(settings, 'MASTER_OTP', None)
-    master_otp = os.getenv('MASTER_OTP', '986257') 
+    master_otp = getattr(settings, 'MASTER_OTP', None)
     
     # Rate limiting
     cache_key = f"master_otp_attempts:{phone}"

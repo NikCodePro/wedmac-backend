@@ -29,7 +29,7 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 import os
 # Add this to your settings
-# MASTER_OTP = config('MASTER_OTP', default='986257')  # Choose your 6-digit master OTP
+MASTER_OTP = config('MASTER_OTP', default='986257')  # Choose your 6-digit master OTP
 # DEBUG = config('DEBUG', default=False, cast=bool)
 DEBUG = False
 
