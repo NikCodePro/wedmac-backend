@@ -59,7 +59,7 @@ class PaymentMethodSerializer(serializers.ModelSerializer):
 class SubscriptionPlanSerializer(serializers.ModelSerializer):
     class Meta:
         model = SubscriptionPlan
-        fields = ['id', 'name', 'price', 'total_leads', 'duration_days']  # Adjust based on actual fields
+        fields = ['id', 'name', 'price', 'total_leads', 'duration_days', 'claim_amount_limit']  # Adjust based on actual fields
 
 
 # Main ArtistProfile Serializer
