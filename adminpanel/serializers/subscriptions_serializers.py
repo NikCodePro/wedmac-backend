@@ -7,7 +7,7 @@ from adminpanel.models import SubscriptionPlan, Service
 class CreateSubscriptionPlanSerializer(serializers.ModelSerializer):
     class Meta:
         model = SubscriptionPlan
-        fields = ['name', 'total_leads', 'price', 'duration_days', 'description', 'features', 'total_credit_points']
+        fields = ['name', 'total_leads', 'price', 'duration_days', 'description', 'features', 'total_credit_points', 'claim_amount_limit']
 
 class SubscriptionPlanSerializer(serializers.ModelSerializer):
     class Meta:
@@ -21,6 +21,7 @@ class SubscriptionPlanSerializer(serializers.ModelSerializer):
             'duration_days',
             'description',
             'features',
+            'claim_amount_limit',
             'created_at',
         ]
         

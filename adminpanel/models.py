@@ -10,6 +10,7 @@ class SubscriptionPlan(models.Model):
     duration_days = models.IntegerField()
     description = models.TextField(blank=True, null=True)
     features = models.JSONField(default=list)
+    claim_amount_limit = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, help_text="Maximum amount limit for lead claims")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
