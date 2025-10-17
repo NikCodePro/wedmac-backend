@@ -26,7 +26,15 @@ class GetMyClaimedLeadsView(APIView):
 
         # Add budget, makeup_types, assigned_count, claimed_count to each lead
         for i, lead in enumerate(leads):
-            leads_data[i]['budget_range'] = lead.budget_range.label if lead.budget_range else None
+            if lead.budget_range:
+                leads_data[i]['budget_range'] = {
+                    'id': lead.budget_range.id,
+                    'label': lead.budget_range.label,
+                    'min_value': lead.budget_range.min_value,
+                    'max_value': lead.budget_range.max_value
+                }
+            else:
+                leads_data[i]['budget_range'] = None
             leads_data[i]['makeup_types'] = [mt.name for mt in lead.makeup_types.all()]
             leads_data[i]['assigned_count'] = lead.booked_artists.count()  # Artists who have booked this lead
             leads_data[i]['claimed_count'] = lead.claimed_artists.count()  # Artists who have claimed this lead
