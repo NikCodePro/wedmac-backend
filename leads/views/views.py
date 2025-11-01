@@ -127,6 +127,7 @@ class AdminCreateMultipleLeadsView(APIView):
     """
     Admin panel view: Admins create multiple leads manually.
     Will auto-assign each lead only if an active distribution strategy exists.
+    Limited to 10 leads per request.
     """
     permission_classes = [IsAuthenticated]
 
@@ -134,6 +135,9 @@ class AdminCreateMultipleLeadsView(APIView):
         leads_data = request.data.get('leads', [])
         if not isinstance(leads_data, list):
             return Response({"error": "Expected a list of leads under 'leads' key"}, status=400)
+
+        if len(leads_data) > 10:
+            return Response({"error": "Cannot create more than 10 leads at once"}, status=400)
 
         results = []
         for lead_data in leads_data:
@@ -202,6 +206,41 @@ class GetMyAssignedLeadsView(APIView):
             "count": leads.count(),
             "leads": leads_data
         }, status=200)
+
+
+class AdminBulkDeleteLeadsView(APIView):
+    """
+    Admin panel view: Admins delete multiple leads by IDs.
+    Limited to 10 leads per request.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request):
+        lead_ids = request.data.get('lead_ids', [])
+        if not isinstance(lead_ids, list):
+            return Response({"error": "Expected a list of lead IDs under 'lead_ids' key"}, status=400)
+
+        if len(lead_ids) > 10:
+            return Response({"error": "Cannot delete more than 10 leads at once"}, status=400)
+
+        deleted_count = 0
+        not_found_ids = []
+
+        for lead_id in lead_ids:
+            try:
+                lead = Lead.objects.get(id=lead_id)
+                lead.delete()
+                deleted_count += 1
+            except Lead.DoesNotExist:
+                not_found_ids.append(lead_id)
+
+        response_data = {
+            "message": f"Deleted {deleted_count} leads successfully"
+        }
+        if not_found_ids:
+            response_data["not_found_ids"] = not_found_ids
+
+        return Response(response_data, status=200)
 
 
 class AdminSetLeadVerifiedView(APIView):
