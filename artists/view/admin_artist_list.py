@@ -15,6 +15,7 @@ class AdminArtistListView(APIView):
     def get(self, request):
         status_filter = request.query_params.get("status", None)
         search_query = request.query_params.get("search", None)
+        get_all = request.query_params.get("all", None)
         qs = ArtistProfile.objects.all()
 
         # Search functionality
@@ -39,6 +40,11 @@ class AdminArtistListView(APIView):
             # if status_filter == "all", leave qs unfiltered
 
         qs = qs.order_by("-created_at")
+
+        # Check if all data is requested without pagination
+        if get_all and get_all.lower() in ['true', '1', 'yes']:
+            serializer = AdminArtistProfileSerializer(qs, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
         # Pagination
         paginator = PageNumberPagination()
