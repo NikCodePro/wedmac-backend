@@ -313,3 +313,9 @@ class ArtistActivityLogSerializer(serializers.ModelSerializer):
             'artist_name', 'artist_phone'
         ]
         read_only_fields = ['id', 'timestamp']
+
+
+class AdminArtistListBasicSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ArtistProfile
+        fields = ['id', 'first_name', 'last_name', 'phone', 'email', 'gender']

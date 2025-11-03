@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
 from django.db import models
 from artists.models.models import ArtistProfile
-from artists.serializers.serializers import AdminArtistProfileSerializer
+from artists.serializers.serializers import AdminArtistProfileSerializer, AdminArtistListBasicSerializer
 
 class AdminArtistListView(APIView):
     permission_classes = [IsSuperAdmin]
@@ -43,7 +43,7 @@ class AdminArtistListView(APIView):
 
         # Check if all data is requested without pagination
         if get_all and get_all.lower() in ['true', '1', 'yes']:
-            serializer = AdminArtistProfileSerializer(qs, many=True)
+            serializer = AdminArtistListBasicSerializer(qs, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         # Pagination
