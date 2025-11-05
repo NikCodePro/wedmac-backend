@@ -33,7 +33,7 @@ MASTER_OTP = config('MASTER_OTP', default='986257')  # Choose your 6-digit maste
 # DEBUG = config('DEBUG', default=False, cast=bool)
 DEBUG = False
 
-ALLOWED_HOSTS = ["89.116.33.217 ", "localhost", "127.0.0.1","wedmac-be.onrender.com","api.wedmacindia.com"]
+ALLOWED_HOSTS = ["89.116.33.217 ", "localhost", "127.0.0.1","wedmac-backend.onrender.com","api.wedmacindia.com"]
 
 
 # Application definition

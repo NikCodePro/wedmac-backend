@@ -1,6 +1,6 @@
 from django.db import models
 from django.conf import settings
-from adminpanel.models import BudgetRange, MakeupType, Service
+from adminpanel.models import MakeupType, Service
 from artists.models.models import ArtistProfile, Location
 from django.db.models.signals import post_save, pre_save, post_delete
 from django.dispatch import receiver
@@ -41,7 +41,7 @@ class Lead(models.Model):
     requirements = models.TextField(blank=True)
     booking_date = models.DateField()
 
-    budget_range = models.ForeignKey(BudgetRange, on_delete=models.SET_NULL, null=True)
+    budget = models.IntegerField(null=True, blank=True)
     makeup_types = models.ManyToManyField(MakeupType, blank=True)
     location = models.CharField(max_length=100, null=True, blank=True)
 

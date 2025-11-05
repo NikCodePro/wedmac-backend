@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from leads.models.models import Lead
-from adminpanel.models import BudgetRange, MakeupType, Service
+from adminpanel.models import MakeupType, Service
 from artists.models.models import ArtistProfile, Location
 from users.models import User
 
@@ -16,10 +16,7 @@ class NestedServiceSerializer(serializers.ModelSerializer):
         model = Service
         fields = ['id', 'name', 'description']
 
-class NestedBudgetRangeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = BudgetRange
-        fields = ['id', 'label', 'min_value', 'max_value']
+
 
 class NestedMakeupTypeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -67,38 +64,12 @@ class MakeupTypeNameField(serializers.Field):
         return value
 
 
-class BudgetRangeValueField(serializers.Field):
-    """
-    Custom field to handle budget_range as integer value during input,
-    but convert to BudgetRange instance for storage.
-    """
 
-    def to_internal_value(self, data):
-        if not isinstance(data, int):
-            raise serializers.ValidationError("Budget range must be an integer value.")
-
-        try:
-            # Find BudgetRange where min_value <= data <= max_value
-            budget_range = BudgetRange.objects.filter(
-                min_value__lte=data,
-                max_value__gte=data
-            ).first()
-
-            if not budget_range:
-                raise serializers.ValidationError(f"No budget range found for value {data}.")
-
-            return budget_range
-        except BudgetRange.DoesNotExist:
-            raise serializers.ValidationError(f"No budget range found for value {data}.")
-
-    def to_representation(self, value):
-        # This will be handled by the NestedBudgetRangeSerializer in to_representation
-        return value
 
 
 class LeadSerializer(serializers.ModelSerializer):
     makeup_types = MakeupTypeNameField(required=False)
-    budget_range = BudgetRangeValueField(required=False)
+    budget = serializers.IntegerField(required=False)
     service = serializers.PrimaryKeyRelatedField(queryset=Service.objects.all(), required=False)
     location = serializers.CharField(required=False)
     claimed_artists = NestedArtistProfileSerializer(read_only=True, many=True)
@@ -120,8 +91,6 @@ class LeadSerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
         if instance.service:
             data['service'] = NestedServiceSerializer(instance.service).data
-        if instance.budget_range:
-            data['budget_range'] = NestedBudgetRangeSerializer(instance.budget_range).data
         if instance.assigned_to:
             data['assigned_to'] = NestedArtistProfileSerializer(instance.assigned_to).data
         if instance.requested_artist:
@@ -156,11 +125,11 @@ class LeadDashboardListSerializer(serializers.ModelSerializer):
     client_name = serializers.SerializerMethodField()
     service = serializers.SerializerMethodField()
     location = serializers.CharField(read_only=True)
-    budget_range = serializers.SerializerMethodField()
+    budget = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Lead
-        fields = ['id', 'client_name', 'status', 'service', 'booking_date', 'location', 'requirements', 'budget_range', 'phone', 'is_verified']
+        fields = ['id', 'client_name', 'status', 'service', 'booking_date', 'location', 'requirements', 'budget', 'phone', 'is_verified']
 
     def get_client_name(self, obj):
         return f"{obj.first_name or ''} {obj.last_name or ''}".strip()
@@ -170,17 +139,6 @@ class LeadDashboardListSerializer(serializers.ModelSerializer):
             return obj.service.name
         return 'N/A'
 
-    def get_budget_range(self, obj):
-        br = getattr(obj, 'budget_range', None)
-        if not br:
-            return None
-        return {
-            'id': br.id,
-            'label': getattr(br, 'label', None),
-            'min_value': getattr(br, 'min_value', None),
-            'max_value': getattr(br, 'max_value', None),
-        }
-
 class NestedUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -189,7 +147,7 @@ class NestedUserSerializer(serializers.ModelSerializer):
 # 🆕 This is your nested serializer for lead detail view
 class LeadDetailSerializer(serializers.ModelSerializer):
     service = NestedServiceSerializer(read_only=True)
-    budget_range = NestedBudgetRangeSerializer(read_only=True)
+    budget = serializers.IntegerField(read_only=True)
     makeup_types = NestedMakeupTypeSerializer(read_only=True, many=True)
     location = NestedLocationSerializer(read_only=True)
     assigned_to = NestedArtistProfileSerializer(read_only=True)
@@ -222,7 +180,7 @@ class MakeupTypeSerializer(serializers.ModelSerializer):
 class ClaimedLeadListSerializer(serializers.ModelSerializer):
     makeup_types = MakeupTypeSerializer(many=True, read_only=True)
     service = serializers.StringRelatedField()
-    budget_range = serializers.StringRelatedField()
+    budget = serializers.IntegerField(read_only=True)
     location = serializers.StringRelatedField()
     assigned_to = serializers.StringRelatedField()
     requested_artist = serializers.StringRelatedField()
@@ -235,7 +193,7 @@ class ClaimedLeadListSerializer(serializers.ModelSerializer):
             'id', 'makeup_types', 'first_name', 'last_name', 'phone', 'email',
             'event_type', 'requirements', 'booking_date', 'source', 'status',
             'last_contact', 'notes', 'created_at', 'updated_at',
-            'service', 'budget_range', 'location',
+            'service', 'budget', 'location',
             'assigned_to', 'requested_artist', 'created_by',
             'claimed_count', 'booked_count', 'is_verified'
         ]

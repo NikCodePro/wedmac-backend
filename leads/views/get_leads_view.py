@@ -44,11 +44,10 @@ class GetLeadsByStatusView(APIView):
             # Add select_related and prefetch_related to optimize queries
             leads = leads.select_related(
                 'service',
-                'budget_range',
                 'assigned_to',
                 'requested_artist',
                 'created_by'
-                # Removed 'location' since it's not a foreign key
+                # Removed 'budget_range' and 'location' since they are not foreign keys
             ).prefetch_related(
                 'makeup_types',
                 Prefetch('claimed_artists', queryset=ArtistProfile.objects.only('id', 'first_name', 'last_name')),
