@@ -80,7 +80,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 CORS_ALLOW_ALL_ORIGINS = True
 CSRF_TRUSTED_ORIGINS = [
-    "https://wedmac-services.onrender.com","https://wedmac-be.onrender.com","https://wedmacindia.com",
+    "https://wedmac-services.onrender.com","https://wedmac-backend.onrender.com","https://wedmacindia.com",
     # Add other domains if needed
 ]
 MIDDLEWARE = [
