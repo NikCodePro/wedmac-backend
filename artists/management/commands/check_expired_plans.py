@@ -31,13 +31,45 @@ class Command(BaseCommand):
                 ).order_by('-created_at').first()
 
                 if not subscription:
-                    logger.warning(f"No active subscription found for artist {artist.id} with plan {artist.current_plan.id}")
-                    continue
+                    # If no active subscription found, check if we should still expire based on plan_purchase_date
+                    if artist.plan_purchase_date:
+                        # Calculate expiry date based on plan status even without active subscription
+                        if artist.plan_purchase_date is None and artist.retained_plan_date:
+                            # Plan was retained by admin, expiry is retained_plan_date + extended_days
+                            expiry_date = artist.retained_plan_date + timedelta(days=artist.extended_days or 0)
+                        else:
+                            # Normal plan: base is plan_purchase_date + plan.duration_days, extended by extended_days if any
+                            expiry_date = artist.plan_purchase_date + timedelta(days=artist.current_plan.duration_days)
+                            if artist.extended_days and artist.extended_days > 0:
+                                expiry_date = expiry_date + timedelta(days=artist.extended_days)
 
-                # Calculate expiry date: base is subscription.end_date, extended by extended_days if any
-                expiry_date = subscription.end_date
-                if artist.extended_days and artist.extended_days > 0:
-                    expiry_date = subscription.end_date + timedelta(days=artist.extended_days)
+                        # Check if plan has expired
+                        if expiry_date and now > expiry_date:
+                            # Create a dummy subscription object for logging purposes
+                            class DummySubscription:
+                                def __init__(self, plan, artist):
+                                    self.plan = plan
+                                    self.artist = artist
+                                    self.id = None
+
+                            subscription = DummySubscription(artist.current_plan, artist)
+                            logger.warning(f"No active subscription found for artist {artist.id} with plan {artist.current_plan.id}, but expiring based on plan_purchase_date")
+                        else:
+                            logger.warning(f"No active subscription found for artist {artist.id} with plan {artist.current_plan.id}")
+                            continue
+                    else:
+                        logger.warning(f"No active subscription found for artist {artist.id} with plan {artist.current_plan.id}")
+                        continue
+
+                # Calculate expiry date based on plan status
+                if artist.plan_purchase_date is None and artist.retained_plan_date:
+                    # Plan was retained by admin, expiry is retained_plan_date + extended_days
+                    expiry_date = artist.retained_plan_date + timedelta(days=artist.extended_days or 0)
+                else:
+                    # Normal plan: base is plan_purchase_date + plan.duration_days, extended by extended_days if any
+                    expiry_date = artist.plan_purchase_date + timedelta(days=subscription.plan.duration_days)
+                    if artist.extended_days and artist.extended_days > 0:
+                        expiry_date = expiry_date + timedelta(days=artist.extended_days)
 
                 # Check if plan has expired
                 if expiry_date and now > expiry_date:
@@ -54,11 +86,15 @@ class Command(BaseCommand):
                         'features': subscription.plan.features,
                     }
 
+                    # Convert UUID fields to string for JSON serialization
+                    plan_id_str = str(subscription.plan.id)
+                    subscription_id_str = str(subscription.id) if subscription.id else None
+
                     ExpiredPlanLog.objects.create(
                         artist=artist,
                         plan=subscription.plan,
                         plan_purchase_date=artist.plan_purchase_date,
-                        plan_expiry_date=subscription.end_date,
+                        plan_expiry_date=expiry_date,
                         available_leads_before_expiry=old_leads,
                         plan_details=plan_snapshot
                     )
@@ -66,7 +102,7 @@ class Command(BaseCommand):
                     # Clear only the available leads, keep the current plan intact
                     leads_before = int(artist.available_leads or 0)
                     artist.available_leads = 0
-                    artist.extended_days = None  # Reset extended days as they were consumed
+                    artist.extended_days = 0  # Reset extended days as they were consumed
                     artist.plan_purchase_date = None  # Set to null to denote plan has expired
 
                     # If this was a retained plan and extended days expired, also clear retained date
@@ -85,9 +121,9 @@ class Command(BaseCommand):
                         leads_after=leads_after,
                         details={
                             'plan_name': subscription.plan.name,
-                            'plan_id': subscription.plan.id,
-                            'subscription_id': subscription.id,
-                            'expired_at': subscription.end_date.isoformat()
+                            'plan_id': plan_id_str,
+                            'subscription_id': subscription_id_str,
+                            'expired_at': expiry_date.isoformat()
                         }
                     )
 
@@ -98,7 +134,7 @@ class Command(BaseCommand):
                     logger.info(
                         f"Plan expired for artist {artist.first_name} {artist.last_name} "
                         f"(ID: {artist.id}). Leads before expiry: {old_leads}. "
-                        f"Plan: {subscription.plan.name}, Expiry: {subscription.end_date}"
+                        f"Plan: {subscription.plan.name}, Expiry: {expiry_date}"
                     )
 
                     expired_count += 1
